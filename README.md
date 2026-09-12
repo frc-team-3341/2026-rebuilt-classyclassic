@@ -4,6 +4,7 @@
 
 ### Innovation Project A/B
 \<members>
+Hansol Lee
 ### Innovation Project C
 \<memebers>
 ### Innovation Project D
