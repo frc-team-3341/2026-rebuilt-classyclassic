@@ -1,10 +1,3 @@
-# 2026 Stay Classy Classic
+Swerve Simulation
 
-## Innovation Project Software Members
-
-### Innovation Project A/B
-\<members>
-### Innovation Project C
-\<memebers>
-### Innovation Project D
-\<members>
+Using Path On-the-Fly Simulation
