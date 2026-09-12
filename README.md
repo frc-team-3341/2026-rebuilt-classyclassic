@@ -1,4 +1,4 @@
-# 2026 Stay Classy Classic
+# 2026 Stay Classy Classic Ethan
 
 ## Innovation Project Software Members
 
