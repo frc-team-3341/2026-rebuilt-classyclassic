@@ -1,3 +1,10 @@
 # 2026 Stay Classy Classic
 
-## Innovation Project Software A Krishna 
+## Innovation Project Software Members
+
+### Innovation Project A/B
+Krishna 
+### Innovation Project C
+\<memebers>
+### Innovation Project D
+\<members>
