@@ -5,6 +5,6 @@
 ### Innovation Project A/B
 \<members>
 ### Innovation Project C
-\<memebers>
+Isaac Schwartz
 ### Innovation Project D
 \<members>
