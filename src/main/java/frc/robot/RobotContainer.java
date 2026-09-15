@@ -145,7 +145,7 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
     
-    controller.a().onTrue(Commands.runOnce(() -> shooter::newPSetpoint, shooter));
+    controller.a().onTrue(Commands.runOnce(() -> shooter.newPSetpoint(0.0), shooter));
   }
 
   /**
