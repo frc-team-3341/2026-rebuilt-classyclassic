@@ -36,6 +36,7 @@ public final class Constants {
     /** Replaying from a log file. */
     REPLAY
   }
+
   public static final class ShooterConstants {
     // Can Id Configs
     public static final int CANIDCONSTANTFLYWHEEL1 = 0;
@@ -57,10 +58,12 @@ public final class Constants {
     public static final double kVflywheel = 12.0/5767;
     public static final double kVfeeder = 12.0/5767;
 
-
+    // Motor Configs
     public static final SparkFlexConfig FLYWHEELMOTORCONFIG = new SparkFlexConfig();
     public static final SparkFlexConfig FEEDERMOTORCONFIG = new SparkFlexConfig();
 
+    // Feeder Configs
+    public static final double FEEDERRPM = 500;
 
       static {
         FLYWHEELMOTORCONFIG
@@ -99,7 +102,5 @@ public final class Constants {
             .feedForward
               .kV(kVfeeder, ClosedLoopSlot.kSlot1);
       }
-
-
   }
 }

@@ -22,42 +22,68 @@ public class Shooter extends SubsystemBase {
   private SparkClosedLoopController flyMotor1CLC;
   private SparkClosedLoopController flyMotor2CLC;
   private SparkClosedLoopController topFeederCLC;
+  // Encoders
   private RelativeEncoder flyMotor1Encoder;
   private RelativeEncoder flyMotor2Encoder;
   private RelativeEncoder topFeederEncoder;
+
+  private double targetRPM;
 
   public Shooter() {
     //Flywheel Motor 1/2 and topFeeder setup, configuration using Constants File, and declaration of ClosedLoopControllers and Encoders for use in class functions below
     flywheelMotor1 = new SparkFlex(ShooterConstants.CANIDCONSTANTFLYWHEEL1, MotorType.kBrushless);
     flywheelMotor2 = new SparkFlex(ShooterConstants.CANIDCONSTANTFLYWHEEL2, MotorType.kBrushless);
+
     topFeeder = new SparkFlex(ShooterConstants.CANIDCONSTANTTOPFEEDER, MotorType.kBrushless);
+
     flyMotor1CLC = flywheelMotor1.getClosedLoopController();
     flyMotor1Encoder = flywheelMotor1.getEncoder();
+
     flyMotor2CLC = flywheelMotor2.getClosedLoopController();
     flyMotor2Encoder = flywheelMotor2.getEncoder();
+
     topFeederCLC = topFeeder.getClosedLoopController();
     topFeederEncoder = topFeeder.getEncoder();
+
     flywheelMotor1.configure(ShooterConstants.FLYWHEELMOTORCONFIG, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
     flywheelMotor2.configure(ShooterConstants.FLYWHEELMOTORCONFIG, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
     topFeeder.configure(ShooterConstants.FEEDERMOTORCONFIG, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
   }
 
-  // new Velocity based RPM Change
-  public void newVSetpoint(SparkClosedLoopController motorCLC, double RPM) {
-    motorCLC.setSetpoint(RPM, ControlType.kVelocity, ClosedLoopSlot.kSlot1);
-  }
-  // new Position based PID Change
-  public void newPSetpoint(SparkClosedLoopController motorCLC, double position) {
-    motorCLC.setSetpoint(position, ControlType.kPosition, ClosedLoopSlot.kSlot1);
+  public void resetEncoders() {
+    flyMotor1Encoder.setPosition(0);
+    flyMotor2Encoder.setPosition(0);
+    topFeederEncoder.setPosition(0);
   }
 
-  public void changePosRelative(SparkClosedLoopController motorCLC, RelativeEncoder motorEncoder, double change) {
-    motorEncoder.setPosition(0);
-    newPSetpoint(motorCLC, change);
+  public void setFlywheelRPM(double rpm) {
+    targetRPM = rpm;
+    flyMotor1CLC.setSetpoint(targetRPM, ControlType.kVelocity);
+    flyMotor2CLC.setSetpoint(targetRPM * -1, ControlType.kVelocity);
+  }
+
+  public void stopFlywheel(double rpm) {
+    targetRPM = 0;
+    flyMotor1CLC.setSetpoint(targetRPM, ControlType.kVelocity);
+    flyMotor2CLC.setSetpoint(targetRPM * -1, ControlType.kVelocity);
+  }
+
+  public void setTopFeed(double rpm) {
+    topFeederCLC.setSetpoint(rpm, ControlType.kVelocity);
+  }
+
+  public void startFeed() {
+    setTopFeed(ShooterConstants.FEEDERRPM);
+  }
+  
+  public void stopFeed() {
+    setTopFeed(0);
   }
 
   @Override
-  public void periodic() {}
+  public void periodic() {
+    // Logging
+  }
 
   public void simulationPeriodic() {}
 }
