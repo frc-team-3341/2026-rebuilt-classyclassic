@@ -14,10 +14,14 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+// Shooter Constants
+import frc.robot.Constants.ShooterConstants;;
+
 public class Shooter extends SubsystemBase {
   private SparkFlex flywheelMotor1;
   private SparkFlex flywheelMotor2;
   private SparkFlex topFeeder;
+  // CLC = closed loop controller
   private SparkClosedLoopController flyMotor1CLC;
   private SparkClosedLoopController flyMotor2CLC;
   private SparkClosedLoopController topFeederCLC;
@@ -27,18 +31,18 @@ public class Shooter extends SubsystemBase {
 
   public Shooter() {
     //Flywheel Motor 1/2 and topFeeder setup, configuration using Constants File, and declaration of ClosedLoopControllers and Encoders for use in class functions below
-    flywheelMotor1 = new SparkFlex(CANIDCONSTANTFLYWHEEL1, MotorType.kBrushless);
-    flywheelMotor2 = new SparkFlex(CANIDCONSTANTFLYWHEEL2, MotorType.kBrushless);
-    topFeeder = new SparkFlex(CANIDCONSTANTTOPFEEDER, MotorType.kBrushless);
+    flywheelMotor1 = new SparkFlex(ShooterConstants.CANIDCONSTANTFLYWHEEL1, MotorType.kBrushless);
+    flywheelMotor2 = new SparkFlex(ShooterConstants.CANIDCONSTANTFLYWHEEL2, MotorType.kBrushless);
+    topFeeder = new SparkFlex(ShooterConstants.CANIDCONSTANTTOPFEEDER, MotorType.kBrushless);
     flyMotor1CLC = flywheelMotor1.getClosedLoopController();
     flyMotor1Encoder = flywheelMotor1.getEncoder();
     flyMotor2CLC = flywheelMotor2.getClosedLoopController();
     flyMotor2Encoder = flywheelMotor2.getEncoder();
     topFeederCLC = topFeeder.getClosedLoopController();
     topFeederEncoder = topFeeder.getEncoder();
-    flywheelMotor1.configure(FLYWHEELMOTORCONFIGCONSTANT, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-    flywheelMotor2.configure(FLYWHEELMOTORCONFIGCONSTANT, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-    topFeeder.configure(FEEDERMOTORCONFIGCONSTANT, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+    flywheelMotor1.configure(ShooterConstants.FLYWHEELMOTORCONFIG, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+    flywheelMotor2.configure(ShooterConstants.FLYWHEELMOTORCONFIG, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+    topFeeder.configure(ShooterConstants.FEEDERMOTORCONFIG, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
   }
 
   // new Velocity based RPM Change

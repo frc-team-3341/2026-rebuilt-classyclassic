@@ -38,9 +38,9 @@ public final class Constants {
   }
   public static final class ShooterConstants {
     // Can Id Configs
-    public static final int flywheelCanId1 = 0;
-    public static final int flywheelCanId2 = 1;
-    public static final int topFeederCanId = 2;
+    public static final int CANIDCONSTANTFLYWHEEL1 = 0;
+    public static final int CANIDCONSTANTFLYWHEEL2 = 1;
+    public static final int CANIDCONSTANTTOPFEEDER = 2;
 
     // Flywheel PID configs
     public static final double kPflywheel = 0.0001; 
@@ -51,21 +51,21 @@ public final class Constants {
     // kV: volts/rpm
     public static final double kVflywheel = 12.0/5767;
 
-    public static final SparkFlexConfig flywheelMotorConfig = new SparkFlexConfig();
-    public static final SparkFlexConfig topFeederMotorConfig = new SparkFlexConfig();
+    public static final SparkFlexConfig FLYWHEELMOTORCONFIG = new SparkFlexConfig();
+    public static final SparkFlexConfig FEEDERMOTORCONFIG = new SparkFlexConfig();
 
 
       static {
-        flywheelMotorConfig
+        FLYWHEELMOTORCONFIG
           .smartCurrentLimit(80)
           .idleMode(IdleMode.kCoast);
         
-        flywheelMotorConfig
+        FLYWHEELMOTORCONFIG
           .encoder
           .positionConversionFactor(1)
           .velocityConversionFactor(1);
         
-          flywheelMotorConfig.closedLoop
+          FLYWHEELMOTORCONFIG.closedLoop
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
             .p(kPflywheel, ClosedLoopSlot.kSlot1)
             .i(kIflywheel, ClosedLoopSlot.kSlot1)
@@ -74,7 +74,7 @@ public final class Constants {
             .feedForward
               .kV(kVflywheel, ClosedLoopSlot.kSlot1);
 
-          topFeederMotorConfig
+          FEEDERMOTORCONFIG
             .smartCurrentLimit(80)
             .idleMode(IdleMode.kCoast);
         
