@@ -145,8 +145,8 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    //below line to be replaced with flywheel spin function later
-    //controller.a().onTrue(Commands.runOnce(() -> shooter.newPSetpoint(0.0), shooter));
+    // below line to be replaced with flywheel spin function later
+    // controller.a().onTrue(Commands.runOnce(() -> shooter.newPSetpoint(0.0), shooter));
   }
 
   /**

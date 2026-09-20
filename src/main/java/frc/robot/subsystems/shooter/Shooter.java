@@ -3,16 +3,12 @@ package frc.robot.subsystems.shooter;
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
-import com.revrobotics.spark.ClosedLoopSlot;
-import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
-// Shooter Constants
-import frc.robot.Constants.ShooterConstants;;
+import frc.robot.Constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase {
   private SparkFlex flywheelMotor1;
@@ -30,7 +26,8 @@ public class Shooter extends SubsystemBase {
   private double targetRPM;
 
   public Shooter() {
-    //Flywheel Motor 1/2 and topFeeder setup, configuration using Constants File, and declaration of ClosedLoopControllers and Encoders for use in class functions below
+    // Flywheel Motor 1/2 and topFeeder setup, configuration using Constants File, and declaration
+    // of ClosedLoopControllers and Encoders for use in class functions below
     flywheelMotor1 = new SparkFlex(ShooterConstants.CANIDCONSTANTFLYWHEEL1, MotorType.kBrushless);
     flywheelMotor2 = new SparkFlex(ShooterConstants.CANIDCONSTANTFLYWHEEL2, MotorType.kBrushless);
 
@@ -45,9 +42,18 @@ public class Shooter extends SubsystemBase {
     topFeederCLC = topFeeder.getClosedLoopController();
     topFeederEncoder = topFeeder.getEncoder();
 
-    flywheelMotor1.configure(ShooterConstants.FLYWHEELMOTORCONFIG, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-    flywheelMotor2.configure(ShooterConstants.FLYWHEELMOTORCONFIG, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-    topFeeder.configure(ShooterConstants.FEEDERMOTORCONFIG, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+    flywheelMotor1.configure(
+        ShooterConstants.FLYWHEELMOTORCONFIG,
+        ResetMode.kResetSafeParameters,
+        PersistMode.kNoPersistParameters);
+    flywheelMotor2.configure(
+        ShooterConstants.FLYWHEELMOTORCONFIG,
+        ResetMode.kResetSafeParameters,
+        PersistMode.kNoPersistParameters);
+    topFeeder.configure(
+        ShooterConstants.FEEDERMOTORCONFIG,
+        ResetMode.kResetSafeParameters,
+        PersistMode.kNoPersistParameters);
   }
 
   public void resetEncoders() {
@@ -75,7 +81,7 @@ public class Shooter extends SubsystemBase {
   public void startFeed() {
     setTopFeed(ShooterConstants.FEEDERRPM);
   }
-  
+
   public void stopFeed() {
     setTopFeed(0);
   }
