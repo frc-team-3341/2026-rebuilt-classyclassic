@@ -7,9 +7,13 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.*;
+import static frc.robot.subsystems.drive.DriveConstants.*;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -20,9 +24,15 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX;
+import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.COTS;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
+import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -34,6 +44,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private SwerveDriveSimulation driveSimulation;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -57,13 +68,38 @@ public class RobotContainer {
 
       case SIM:
         // Sim robot, instantiate physics sim IO implementations
+        driveSimulation =
+            new SwerveDriveSimulation(
+                DriveTrainSimulationConfig.Default()
+                    .withRobotMass(Kilograms.of(robotMassKg))
+                    .withBumperSize(Meters.of(bumperLengthMeters), Meters.of(bumperWidthMeters))
+                    .withCustomModuleTranslations(moduleTranslations)
+                    .withGyro(COTS.ofNav2X())
+                    .withSwerveModule(
+                        new SwerveModuleSimulationConfig(
+                            driveGearbox,
+                            turnGearbox,
+                            driveMotorReduction,
+                            turnMotorReduction,
+                            Volts.of(driveSimKs),
+                            Volts.of(turnSimFrictionVolts),
+                            Meters.of(wheelRadiusMeters),
+                            KilogramSquareMeters.of(turnSimMOI),
+                            wheelCOF)),
+                new Pose2d(2.0, 2.0, Rotation2d.kZero));
+        SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
         drive =
             new Drive(
-                new GyroIO() {},
-                new ModuleIOSim(),
-                new ModuleIOSim(),
-                new ModuleIOSim(),
-                new ModuleIOSim());
+                new GyroIOSim(driveSimulation.getGyroSimulation()),
+                new ModuleIOSim(driveSimulation.getModules()[0]),
+                new ModuleIOSim(driveSimulation.getModules()[1]),
+                new ModuleIOSim(driveSimulation.getModules()[2]),
+                new ModuleIOSim(driveSimulation.getModules()[3]),
+                (pose) -> {
+                  driveSimulation.setSimulationWorldPose(pose);
+                  driveSimulation.setRobotSpeeds(new ChassisSpeeds());
+                });
+        drive.setPose(driveSimulation.getSimulatedDriveTrainPose());
         break;
 
       default:
@@ -148,5 +184,12 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
+  }
+
+  public void simulationPeriodic() {
+    if (driveSimulation != null) {
+      SimulatedArena.getInstance().simulationPeriodic();
+      drive.setSimulationPose(driveSimulation.getSimulatedDriveTrainPose());
+    }
   }
 }
