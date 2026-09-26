@@ -24,6 +24,7 @@ public class Shooter extends SubsystemBase {
   private RelativeEncoder topFeederEncoder;
 
   private double targetRPM;
+  private double revRPM = 1;
 
   public Shooter() {
     // Flywheel Motor 1/2 and topFeeder setup, configuration using Constants File, and declaration
@@ -54,6 +55,10 @@ public class Shooter extends SubsystemBase {
         ShooterConstants.FEEDERMOTORCONFIG,
         ResetMode.kResetSafeParameters,
         PersistMode.kNoPersistParameters);
+    
+    if (ShooterConstants.REVERSEFLYWHEEL) {
+      revRPM = -1;
+    }
   }
 
   public void resetEncoders() {
@@ -63,15 +68,14 @@ public class Shooter extends SubsystemBase {
   }
 
   public void setFlywheelRPM(double rpm) {
-    targetRPM = rpm;
+    targetRPM = rpm * revRPM;
     flyMotor1CLC.setSetpoint(targetRPM, ControlType.kVelocity);
     flyMotor2CLC.setSetpoint(targetRPM * -1, ControlType.kVelocity);
   }
 
   public void stopFlywheel(double rpm) {
     targetRPM = 0;
-    flyMotor1CLC.setSetpoint(targetRPM, ControlType.kVelocity);
-    flyMotor2CLC.setSetpoint(targetRPM * -1, ControlType.kVelocity);
+    setFlywheelRPM(targetRPM);
   }
 
   public void setTopFeed(double rpm) {

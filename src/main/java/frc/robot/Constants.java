@@ -35,6 +35,7 @@ public final class Constants {
   }
 
   public static final class ShooterConstants {
+
     // Can Id Configs
     public static final int CANIDCONSTANTFLYWHEEL1 = 0;
     public static final int CANIDCONSTANTFLYWHEEL2 = 1;
@@ -61,6 +62,9 @@ public final class Constants {
 
     // Feeder Configs
     public static final double FEEDERRPM = 500;
+
+    // Reverse Flywheel?
+    public static final boolean REVERSEFLYWHEEL = false;
 
     static {
       FLYWHEELMOTORCONFIG.smartCurrentLimit(80).idleMode(IdleMode.kCoast);
