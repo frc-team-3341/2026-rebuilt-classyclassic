@@ -16,7 +16,6 @@ public class Shooter extends SubsystemBase {
   private SparkFlex topFeeder;
   // CLC = closed loop controller
   private SparkClosedLoopController flyMotor1CLC;
-  private SparkClosedLoopController flyMotor2CLC;
   private SparkClosedLoopController topFeederCLC;
   // Encoders
   private RelativeEncoder flyMotor1Encoder;
@@ -27,9 +26,9 @@ public class Shooter extends SubsystemBase {
   private double revRPM = 1;
 
   public Shooter() {
-    // Flywheel Motor 1/2 and topFeeder setup, configuration using Constants File, and declaration
-    // of ClosedLoopControllers and Encoders for use in class functions below
+    // Flywheel Motor #1 is the main motor for the flywheel.
     flywheelMotor1 = new SparkFlex(ShooterConstants.CANIDCONSTANTFLYWHEEL1, MotorType.kBrushless);
+    // Flywheel Motor #2 is the follower motor for the flywheel.
     flywheelMotor2 = new SparkFlex(ShooterConstants.CANIDCONSTANTFLYWHEEL2, MotorType.kBrushless);
 
     topFeeder = new SparkFlex(ShooterConstants.CANIDCONSTANTTOPFEEDER, MotorType.kBrushless);
@@ -64,6 +63,8 @@ public class Shooter extends SubsystemBase {
     topFeederEncoder.setPosition(0);
   }
 
+  // Flywheel Functions
+
   public void setFlywheelRPM(double rpm) {
     targetRPM = rpm * revRPM;
     flyMotor1CLC.setSetpoint(targetRPM, ControlType.kVelocity);
@@ -74,16 +75,31 @@ public class Shooter extends SubsystemBase {
     setFlywheelRPM(targetRPM);
   }
 
+
+  // Feed Functions
   public void setTopFeed(double rpm) {
     topFeederCLC.setSetpoint(rpm, ControlType.kVelocity);
   }
 
   public void startFeed() {
-    setTopFeed(ShooterConstants.FEEDERRPM);
+    if (canShoot()) {
+      setTopFeed(ShooterConstants.FEEDERRPM);
+    }
   }
 
   public void stopFeed() {
     setTopFeed(0);
+  }
+
+  public boolean canShoot() {
+    // Checks if flywheel speed is within acceptable range of target speed (200 rpm)
+    Boolean flywheelReady = Math.abs(flyMotor1Encoder.getVelocity() - targetRPM) <= 200;
+
+    // Check if all conditions are true
+    if (flywheelReady) {
+      return true;
+    }
+    return false;
   }
 
   @Override

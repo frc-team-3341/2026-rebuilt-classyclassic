@@ -64,7 +64,7 @@ public final class Constants {
     // Feeder Configs
     public static final double FEEDERRPM = 500;
 
-    // Reverse Flywheel?
+    // Reverse Flywheel
     public static final boolean REVERSEFLYWHEEL = false;
 
     static {
