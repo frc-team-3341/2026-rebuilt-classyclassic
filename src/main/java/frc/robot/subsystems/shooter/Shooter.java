@@ -37,9 +37,6 @@ public class Shooter extends SubsystemBase {
     flyMotor1CLC = flywheelMotor1.getClosedLoopController();
     flyMotor1Encoder = flywheelMotor1.getEncoder();
 
-    flyMotor2CLC = flywheelMotor2.getClosedLoopController();
-    flyMotor2Encoder = flywheelMotor2.getEncoder();
-
     topFeederCLC = topFeeder.getClosedLoopController();
     topFeederEncoder = topFeeder.getEncoder();
 
@@ -48,7 +45,7 @@ public class Shooter extends SubsystemBase {
         ResetMode.kResetSafeParameters,
         PersistMode.kNoPersistParameters);
     flywheelMotor2.configure(
-        ShooterConstants.FLYWHEELMOTORCONFIG,
+        ShooterConstants.FOLLOWERMOTORCONFIG,
         ResetMode.kResetSafeParameters,
         PersistMode.kNoPersistParameters);
     topFeeder.configure(
@@ -70,7 +67,6 @@ public class Shooter extends SubsystemBase {
   public void setFlywheelRPM(double rpm) {
     targetRPM = rpm * revRPM;
     flyMotor1CLC.setSetpoint(targetRPM, ControlType.kVelocity);
-    flyMotor2CLC.setSetpoint(targetRPM * -1, ControlType.kVelocity);
   }
 
   public void stopFlywheel(double rpm) {

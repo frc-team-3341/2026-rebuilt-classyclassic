@@ -58,6 +58,7 @@ public final class Constants {
 
     // Motor Configs
     public static final SparkFlexConfig FLYWHEELMOTORCONFIG = new SparkFlexConfig();
+    public static final SparkFlexConfig FOLLOWERMOTORCONFIG = new SparkFlexConfig();
     public static final SparkFlexConfig FEEDERMOTORCONFIG = new SparkFlexConfig();
 
     // Feeder Configs
@@ -80,6 +81,8 @@ public final class Constants {
           .outputRange(-1, 1, ClosedLoopSlot.kSlot1)
           .feedForward
           .kV(kVflywheel, ClosedLoopSlot.kSlot1);
+      
+      FOLLOWERMOTORCONFIG.follow(CANIDCONSTANTFLYWHEEL1);
 
       FEEDERMOTORCONFIG.smartCurrentLimit(80).idleMode(IdleMode.kBrake);
 
