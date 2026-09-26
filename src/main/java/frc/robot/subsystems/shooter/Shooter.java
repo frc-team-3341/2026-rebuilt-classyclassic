@@ -43,6 +43,8 @@ public class Shooter extends SubsystemBase {
         ShooterConstants.FLYWHEELMOTORCONFIG,
         ResetMode.kResetSafeParameters,
         PersistMode.kNoPersistParameters);
+        
+    // Use follower config for secondary flywheel.
     flywheelMotor2.configure(
         ShooterConstants.FOLLOWERMOTORCONFIG,
         ResetMode.kResetSafeParameters,

@@ -82,7 +82,7 @@ public final class Constants {
           .feedForward
           .kV(kVflywheel, ClosedLoopSlot.kSlot1);
       
-      FOLLOWERMOTORCONFIG.follow(CANIDCONSTANTFLYWHEEL1);
+      FOLLOWERMOTORCONFIG.follow(CANIDCONSTANTFLYWHEEL1,true);
 
       FEEDERMOTORCONFIG.smartCurrentLimit(80).idleMode(IdleMode.kBrake);
 
