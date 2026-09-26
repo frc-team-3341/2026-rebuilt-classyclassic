@@ -33,7 +33,7 @@ public class DriveConstants {
   public static final Rotation2d frontRightZeroRotation = new Rotation2d(0.0);
   public static final Rotation2d backLeftZeroRotation = new Rotation2d(0.0);
   public static final Rotation2d backRightZeroRotation = new Rotation2d(0.0);
- 
+
   // Device CAN IDs
   public static final int frontLeftDriveCanId = 4;
   public static final int backLeftDriveCanId = 2;
@@ -66,7 +66,7 @@ public class DriveConstants {
   public static final double driveKd = 0.0;
   public static final double driveKs = 0.0;
   public static final double driveKv = 0.1;
-  public static final double driveSimP = 0.05;
+  public static final double driveSimP = 0.4;
   public static final double driveSimD = 0.0;
   public static final double driveSimKs = 0.1;
   public static final double driveSimKv = driveMotorReduction / driveGearbox.KvRadPerSecPerVolt;
