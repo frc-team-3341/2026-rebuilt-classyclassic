@@ -15,4 +15,10 @@ jobs:
       - name: Grant execute permission
         run: chmod +x gradlew
       - name: Build robot code
-        run: ./gradlew build
+        run: ./gradlew 
+    name: Upload Problems Report
+    uses: actions/upload-artifact@v4
+    with:
+      name: problems-report
+      path: /__w/2026-rebuilt-classyclassic/2026-rebuilt-classyclassic/build/reports/problems/problems-report.html  
+
