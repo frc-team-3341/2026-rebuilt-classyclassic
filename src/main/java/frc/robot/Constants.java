@@ -10,9 +10,9 @@ package frc.robot;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-// Config imports
 import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 
 /**
  * This class defines the runtime mode used by AdvantageKit. The mode is always "real" when running
@@ -67,7 +67,19 @@ public final class Constants {
     // Reverse Flywheel
     public static final boolean REVERSEFLYWHEEL = false;
 
+    // Flywheel configs
+    public static final double BACKUPSHOOTERRPM = 3000;
+    public static final InterpolatingDoubleTreeMap shooterMap = new InterpolatingDoubleTreeMap();
+    
     static {
+      // Update Shooter Tree Map
+      // Key: distance (in meters) 
+      // Value: flywheel RPM
+      shooterMap.put(0.0, 0.0);
+    }
+
+    static {
+      // Configure Motors.
       FLYWHEELMOTORCONFIG.smartCurrentLimit(80).idleMode(IdleMode.kCoast);
 
       FLYWHEELMOTORCONFIG.encoder.positionConversionFactor(1).velocityConversionFactor(1);

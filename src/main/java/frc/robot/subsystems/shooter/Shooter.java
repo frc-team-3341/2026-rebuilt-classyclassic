@@ -43,7 +43,7 @@ public class Shooter extends SubsystemBase {
         ShooterConstants.FLYWHEELMOTORCONFIG,
         ResetMode.kResetSafeParameters,
         PersistMode.kNoPersistParameters);
-        
+
     // Use follower config for secondary flywheel.
     flywheelMotor2.configure(
         ShooterConstants.FOLLOWERMOTORCONFIG,
@@ -65,7 +65,7 @@ public class Shooter extends SubsystemBase {
     topFeederEncoder.setPosition(0);
   }
 
-  // Flywheel Functions
+  // Shoot Functions
 
   public void setFlywheelRPM(double rpm) {
     targetRPM = rpm * revRPM;
@@ -76,6 +76,17 @@ public class Shooter extends SubsystemBase {
     targetRPM = 0;
     setFlywheelRPM(targetRPM);
   }
+
+  public void shoot() {
+    // Placeholder speed
+    setFlywheelRPM(3000);
+  }
+
+  public void backupShoot() {
+    // Placeholder speed
+    setFlywheelRPM(ShooterConstants.BACKUPSHOOTERRPM);
+  }
+
 
 
   // Feed Functions
