@@ -157,8 +157,18 @@ public class RobotContainer {
   public void createIntake() {
     robotIntake = new Intake();
 
-    Trigger intakeMotorOn = controller.a();
+    Trigger motorOutputOn = controller.a();
+    motorOutputOn.onTrue(robotIntake.runIntakeBall());
 
-    intakeMotorOn.onTrue(robotIntake.runIntakeBall());
+    Trigger motorBackwards = controller.b();
+    motorBackwards.onTrue(robotIntake.reverseIntakeBall()).onFalse(robotIntake.stopIntakeBall());
+
+    controller.a().onTrue(robotIntake.keepOn());
+    Trigger keepOn =
+        new Trigger(
+            () -> {
+              return robotIntake.getMotorOn();
+            });
+    keepOn.toggleOnFalse(robotIntake.stopIntakeBall());
   }
 }

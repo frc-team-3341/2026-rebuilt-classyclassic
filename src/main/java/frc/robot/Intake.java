@@ -1,5 +1,6 @@
 package frc.robot;
 
+import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkFlex;
@@ -12,17 +13,29 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Intake extends SubsystemBase {
   private SparkFlex intakeBall;
+  private SparkFlex hopperMovement;
   private SparkMax turnIntake;
 
   private SparkFlexConfig intakeBallConfig;
+  private SparkFlexConfig hopperMovementConfig;
   private SparkMaxConfig turnIntakeConfig;
+
+  private AbsoluteEncoder turnIntakeEncoder;
+
+  private boolean motorIsOn;
 
   public Intake() {
     intakeBall = new SparkFlex(1, MotorType.kBrushless);
-    turnIntake = new SparkMax(2, MotorType.kBrushless);
+    hopperMovement = new SparkFlex(2, MotorType.kBrushless);
+    turnIntake = new SparkMax(3, MotorType.kBrushless);
 
     intakeBallConfig = new SparkFlexConfig();
+    hopperMovementConfig = new SparkFlexConfig();
     turnIntakeConfig = new SparkMaxConfig();
+
+    turnIntakeEncoder = turnIntake.getAbsoluteEncoder();
+
+    motorIsOn = false;
 
     intakeBallConfig.closedLoop.pid(0.01, 0, 0);
     turnIntakeConfig.closedLoop.pid(0.01, 0, 0);
@@ -42,10 +55,57 @@ public class Intake extends SubsystemBase {
         });
   }
 
+  public Command reverseIntakeBall() {
+    return runOnce(
+        () -> {
+          intakeBall.set(-0.25);
+        });
+  }
+
   public Command runTurnIntake() {
     return runOnce(
         () -> {
           turnIntake.set(0.25);
+        });
+  }
+
+  public Command stopTurnIntake() {
+    return runOnce(
+        () -> {
+          turnIntake.set(0);
+        });
+  }
+
+  public Command stopIntakeBall() {
+    return runOnce(
+        () -> {
+          intakeBall.set(0);
+        });
+  }
+
+  public void setMotorOn(boolean val) {
+    motorIsOn = val;
+  }
+
+  public boolean getMotorOn() {
+    return motorIsOn;
+  }
+
+  public Command setMotorCommandOn(boolean val) {
+    return runOnce(
+        () -> {
+          motorIsOn = val;
+        });
+  }
+
+  public Command keepOn() {
+    return runOnce(
+        () -> {
+          if (getMotorOn()) {
+            setMotorOn(false);
+          } else {
+            setMotorOn(true);
+          }
         });
   }
 }
