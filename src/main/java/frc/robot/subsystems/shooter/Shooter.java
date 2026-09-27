@@ -9,6 +9,9 @@ import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ShooterConstants;
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 
 public class Shooter extends SubsystemBase {
   private SparkFlex flywheelMotor1;
@@ -24,6 +27,11 @@ public class Shooter extends SubsystemBase {
 
   private double targetRPM;
   private double revRPM = 1;
+
+  // Shuffleboard
+  ShuffleboardTab shooterTab;
+  GenericEntry targetSendableRPM;
+  GenericEntry encoderSendableRPM;
 
   public Shooter() {
     // Flywheel Motor #1 is the main motor for the flywheel.
@@ -57,6 +65,11 @@ public class Shooter extends SubsystemBase {
     if (ShooterConstants.REVERSEFLYWHEEL) {
       revRPM = -1;
     }
+
+    // Shuffleboard configs
+    shooterTab = Shuffleboard.getTab("Shooter");
+    targetSendableRPM = shooterTab.add("Flywheel Target RPM", 0).getEntry();
+    encoderSendableRPM = shooterTab.add("Flywheel Encoder RPM", flyMotor1Encoder.getVelocity()).getEntry();
   }
 
   public void resetEncoders() {
@@ -118,6 +131,8 @@ public class Shooter extends SubsystemBase {
   @Override
   public void periodic() {
     // Logging
+    targetSendableRPM.setDouble(targetRPM);
+    encoderSendableRPM.setDouble(flyMotor1Encoder.getVelocity());
   }
 
   public void simulationPeriodic() {}
