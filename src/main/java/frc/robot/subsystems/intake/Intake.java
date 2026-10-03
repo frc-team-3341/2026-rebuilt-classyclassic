@@ -14,8 +14,11 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
 
 public class Intake extends SubsystemBase {
+  // Intake motor
   private SparkFlex intakeBall;
+  // Agitates hopper
   private SparkFlex hopperMovement;
+  // Raises & Lowers intake
   private SparkMax turnIntake;
 
   private boolean motorIsOn;

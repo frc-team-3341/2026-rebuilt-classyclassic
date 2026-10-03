@@ -9,11 +9,15 @@ import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.subsystems.intake.Intake;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 
 public class Shooter extends SubsystemBase {
+  // Other Subsystems
+  private Intake intakeSubsys;
+
   private SparkFlex flywheelMotor1;
   private SparkFlex flywheelMotor2;
   private SparkFlex topFeeder;
@@ -33,7 +37,11 @@ public class Shooter extends SubsystemBase {
   GenericEntry targetSendableRPM;
   GenericEntry encoderSendableRPM;
 
-  public Shooter() {
+  public Shooter(Intake intake) {
+
+    // Import external subsystems
+    intakeSubsys = intake;
+
     // Flywheel Motor #1 is the main motor for the flywheel.
     flywheelMotor1 = new SparkFlex(ShooterConstants.CANIDCONSTANTFLYWHEEL1, MotorType.kBrushless);
     // Flywheel Motor #2 is the follower motor for the flywheel.
@@ -110,11 +118,13 @@ public class Shooter extends SubsystemBase {
   public void startFeed() {
     if (canShoot()) {
       setTopFeed(ShooterConstants.FEEDERRPM);
+      intakeSubsys.runIntakeBall();
     }
   }
 
   public void stopFeed() {
     setTopFeed(0);
+    intakeSubsys.stopIntakeBall();
   }
 
   public boolean canShoot() {

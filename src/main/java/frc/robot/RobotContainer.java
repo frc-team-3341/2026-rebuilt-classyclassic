@@ -60,7 +60,8 @@ public class RobotContainer {
                 new ModuleIOSpark(1),
                 new ModuleIOSpark(2),
                 new ModuleIOSpark(3));
-        shooter = new Shooter();
+        createIntake();
+        shooter = new Shooter(robotIntake);
         break;
 
       case SIM:
@@ -72,7 +73,7 @@ public class RobotContainer {
                 new ModuleIOSim(),
                 new ModuleIOSim(),
                 new ModuleIOSim());
-        shooter = new Shooter();
+        shooter = new Shooter(robotIntake);
         break;
 
       default:
@@ -84,7 +85,8 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        shooter = new Shooter();
+        createIntake();
+        shooter = new Shooter(robotIntake);
         break;
     }
 
