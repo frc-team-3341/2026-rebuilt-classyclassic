@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
@@ -42,6 +43,9 @@ public class RobotContainer {
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
+
+  // Intake
+  private Intake robotIntake;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -156,5 +160,23 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
+  }
+
+  public void createIntake() {
+    robotIntake = new Intake();
+
+    Trigger motorOutputOn = controller.a();
+    motorOutputOn.onTrue(robotIntake.runIntakeBall());
+
+    Trigger motorBackwards = controller.b();
+    motorBackwards.onTrue(robotIntake.reverseIntakeBall()).onFalse(robotIntake.stopIntakeBall());
+
+    controller.a().onTrue(robotIntake.keepOn());
+    Trigger keepOn =
+        new Trigger(
+            () -> {
+              return robotIntake.getMotorOn();
+            });
+    keepOn.toggleOnFalse(robotIntake.stopIntakeBall());
   }
 }
