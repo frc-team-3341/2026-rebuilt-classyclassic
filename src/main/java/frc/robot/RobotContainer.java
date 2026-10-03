@@ -37,7 +37,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  private final Shooter shooter;
+  private Shooter shooter;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -61,7 +61,7 @@ public class RobotContainer {
                 new ModuleIOSpark(2),
                 new ModuleIOSpark(3));
         createIntake();
-        shooter = new Shooter(robotIntake);
+        createShooter();
         break;
 
       case SIM:
@@ -73,7 +73,6 @@ public class RobotContainer {
                 new ModuleIOSim(),
                 new ModuleIOSim(),
                 new ModuleIOSim());
-        shooter = new Shooter(robotIntake);
         break;
 
       default:
@@ -86,7 +85,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         createIntake();
-        shooter = new Shooter(robotIntake);
+        createShooter();
         break;
     }
 
@@ -163,6 +162,30 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
+  }
+
+  public void createShooter() {
+    shooter = new Shooter(robotIntake);
+    // Feed Function
+    Trigger feedTrigger = controller.rightTrigger();
+    feedTrigger.debounce(1);
+    feedTrigger.onTrue(Commands.runOnce(() -> 
+      shooter.startFeed()
+    ));
+    feedTrigger.onFalse(Commands.runOnce(() -> 
+      shooter.stopFeed()
+    ));
+
+    // Start Flywheel
+    Trigger flywheelTrigger = controller.rightBumper();
+    flywheelTrigger.debounce(1);
+    flywheelTrigger.toggleOnTrue(Commands.runOnce(() -> 
+      shooter.shoot()
+    ));
+    flywheelTrigger.toggleOnFalse(Commands.runOnce(() -> 
+      shooter.stopFlywheel()
+    ));
+
   }
 
   public void createIntake() {

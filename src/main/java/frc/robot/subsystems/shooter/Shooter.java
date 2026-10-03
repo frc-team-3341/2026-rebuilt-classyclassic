@@ -93,7 +93,7 @@ public class Shooter extends SubsystemBase {
     flyMotor1CLC.setSetpoint(targetRPM, ControlType.kVelocity);
   }
 
-  public void stopFlywheel(double rpm) {
+  public void stopFlywheel() {
     targetRPM = 0;
     setFlywheelRPM(targetRPM);
   }
