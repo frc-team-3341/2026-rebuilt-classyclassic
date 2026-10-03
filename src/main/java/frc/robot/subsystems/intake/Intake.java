@@ -1,7 +1,8 @@
-package frc.robot;
+package frc.robot.subsystems.intake;
 
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.PersistMode;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -10,40 +11,26 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.IntakeConstants;
 
 public class Intake extends SubsystemBase {
   private SparkFlex intakeBall;
   private SparkFlex hopperMovement;
   private SparkMax turnIntake;
 
-  private SparkFlexConfig intakeBallConfig;
-  private SparkFlexConfig hopperMovementConfig;
-  private SparkMaxConfig turnIntakeConfig;
-
-  private AbsoluteEncoder turnIntakeEncoder;
-
   private boolean motorIsOn;
 
   public Intake() {
-    intakeBall = new SparkFlex(1, MotorType.kBrushless);
-    hopperMovement = new SparkFlex(2, MotorType.kBrushless);
-    turnIntake = new SparkMax(3, MotorType.kBrushless);
-
-    intakeBallConfig = new SparkFlexConfig();
-    hopperMovementConfig = new SparkFlexConfig();
-    turnIntakeConfig = new SparkMaxConfig();
-
-    turnIntakeEncoder = turnIntake.getAbsoluteEncoder();
+    intakeBall = new SparkFlex(IntakeConstants.CANIDINTAKEBALL, MotorType.kBrushless);
+    hopperMovement = new SparkFlex(IntakeConstants.CANIDHOPPER, MotorType.kBrushless);
+    turnIntake = new SparkMax(IntakeConstants.CANIDINTAKETURN, MotorType.kBrushless);
 
     motorIsOn = false;
 
-    intakeBallConfig.closedLoop.pid(0.01, 0, 0);
-    turnIntakeConfig.closedLoop.pid(0.01, 0, 0);
-
     intakeBall.configure(
-        intakeBallConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        IntakeConstants.intakeBallConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     turnIntake.configure(
-        turnIntakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        IntakeConstants.turnIntakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
   public void periodic() {}

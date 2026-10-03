@@ -11,6 +11,7 @@ import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 
@@ -33,6 +34,17 @@ public final class Constants {
 
     /** Replaying from a log file. */
     REPLAY
+  }
+
+  public static final class IntakeConstants {
+    public static final int CANIDINTAKEBALL = 1;
+    public static final int CANIDHOPPER = 2;
+    public static final int CANIDINTAKETURN = 3;
+
+    public static final SparkFlexConfig intakeBallConfig = new SparkFlexConfig();
+    public static final SparkFlexConfig hopperMovementConfig = new SparkFlexConfig();
+    public static final SparkMaxConfig turnIntakeConfig = new SparkMaxConfig();
+
   }
 
   public static final class ShooterConstants {
