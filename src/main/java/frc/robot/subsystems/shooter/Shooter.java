@@ -118,13 +118,11 @@ public class Shooter extends SubsystemBase {
   public void startFeed() {
     if (canShoot()) {
       setTopFeed(ShooterConstants.FEEDERRPM);
-      intakeSubsys.runIntakeBall();
     }
   }
 
   public void stopFeed() {
     setTopFeed(0);
-    intakeSubsys.stopIntakeBall();
   }
 
   public boolean canShoot() {
