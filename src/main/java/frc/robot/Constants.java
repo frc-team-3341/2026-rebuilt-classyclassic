@@ -12,7 +12,6 @@ import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 
 /**
@@ -37,22 +36,21 @@ public final class Constants {
   }
 
   public static final class IntakeConstants {
-    public static final int CANIDINTAKEBALL = 1;
-    public static final int CANIDHOPPER = 2;
-    public static final int CANIDINTAKETURN = 3;
+    public static final int CANIDINTAKEROLLERS = 15;
+    public static final int CANIDHOPPER = 14;
+    public static final int CANIDINTAKEARM = 13;
 
     public static final SparkFlexConfig intakeBallConfig = new SparkFlexConfig();
     public static final SparkFlexConfig hopperMovementConfig = new SparkFlexConfig();
     public static final SparkMaxConfig turnIntakeConfig = new SparkMaxConfig();
-
   }
 
   public static final class ShooterConstants {
 
     // Can Id Configs
-    public static final int CANIDCONSTANTFLYWHEEL1 = 0;
-    public static final int CANIDCONSTANTFLYWHEEL2 = 1;
-    public static final int CANIDCONSTANTTOPFEEDER = 2;
+    public static final int CANIDCONSTANTFLYWHEEL1 = 10;
+    public static final int CANIDCONSTANTFLYWHEEL2 = 11;
+    public static final int CANIDCONSTANTTOPFEEDER = 12;
 
     // Flywheel PID configs
     public static final double kPflywheel = 0.0001;
@@ -83,10 +81,10 @@ public final class Constants {
     // Flywheel configs
     public static final double BACKUPSHOOTERRPM = 3000;
     public static final InterpolatingDoubleTreeMap shooterMap = new InterpolatingDoubleTreeMap();
-    
+
     static {
       // Update Shooter Tree Map
-      // Key: distance (in meters) 
+      // Key: distance (in meters)
       // Value: flywheel RPM
       shooterMap.put(0.0, 0.0);
     }
@@ -106,8 +104,8 @@ public final class Constants {
           .outputRange(-1, 1, ClosedLoopSlot.kSlot1)
           .feedForward
           .kV(kVflywheel, ClosedLoopSlot.kSlot1);
-      
-      FOLLOWERMOTORCONFIG.follow(CANIDCONSTANTFLYWHEEL1,true);
+
+      FOLLOWERMOTORCONFIG.follow(CANIDCONSTANTFLYWHEEL1, true);
 
       FEEDERMOTORCONFIG.smartCurrentLimit(80).idleMode(IdleMode.kBrake);
 

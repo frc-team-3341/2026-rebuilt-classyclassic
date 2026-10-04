@@ -1,14 +1,10 @@
 package frc.robot.subsystems.intake;
 
-import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.PersistMode;
-import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkFlexConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
@@ -24,16 +20,20 @@ public class Intake extends SubsystemBase {
   private boolean motorIsOn;
 
   public Intake() {
-    intakeBall = new SparkFlex(IntakeConstants.CANIDINTAKEBALL, MotorType.kBrushless);
+    intakeBall = new SparkFlex(IntakeConstants.CANIDINTAKEROLLERS, MotorType.kBrushless);
     hopperMovement = new SparkFlex(IntakeConstants.CANIDHOPPER, MotorType.kBrushless);
-    turnIntake = new SparkMax(IntakeConstants.CANIDINTAKETURN, MotorType.kBrushless);
+    turnIntake = new SparkMax(IntakeConstants.CANIDINTAKEARM, MotorType.kBrushless);
 
     motorIsOn = false;
 
     intakeBall.configure(
-        IntakeConstants.intakeBallConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        IntakeConstants.intakeBallConfig,
+        ResetMode.kResetSafeParameters,
+        PersistMode.kPersistParameters);
     turnIntake.configure(
-        IntakeConstants.turnIntakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        IntakeConstants.turnIntakeConfig,
+        ResetMode.kResetSafeParameters,
+        PersistMode.kPersistParameters);
   }
 
   public void periodic() {}

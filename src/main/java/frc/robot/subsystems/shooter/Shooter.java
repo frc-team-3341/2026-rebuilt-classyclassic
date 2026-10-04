@@ -7,12 +7,12 @@ import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.ShooterConstants;
-import frc.robot.subsystems.intake.Intake;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.ShooterConstants;
+import frc.robot.subsystems.intake.Intake;
 
 public class Shooter extends SubsystemBase {
   // Other Subsystems
@@ -21,9 +21,11 @@ public class Shooter extends SubsystemBase {
   private SparkFlex flywheelMotor1;
   private SparkFlex flywheelMotor2;
   private SparkFlex topFeeder;
+  private SparkFlex bottomFeeder;
   // CLC = closed loop controller
   private SparkClosedLoopController flyMotor1CLC;
   private SparkClosedLoopController topFeederCLC;
+  private SparkClosedLoopController bottomFeederCLC;
   // Encoders
   private RelativeEncoder flyMotor1Encoder;
   private RelativeEncoder flyMotor2Encoder;
@@ -32,10 +34,15 @@ public class Shooter extends SubsystemBase {
   private double targetRPM;
   private double revRPM = 1;
 
+  private int flywheelSetpointRPM;
+
   // Shuffleboard
   ShuffleboardTab shooterTab;
   GenericEntry targetSendableRPM;
   GenericEntry encoderSendableRPM;
+  GenericEntry flywheelSendableRPM;
+  GenericEntry feedSendableRPM;
+  GenericEntry feedBSendableRPM;
 
   public Shooter(Intake intake) {
 
@@ -49,11 +56,15 @@ public class Shooter extends SubsystemBase {
 
     topFeeder = new SparkFlex(ShooterConstants.CANIDCONSTANTTOPFEEDER, MotorType.kBrushless);
 
+    bottomFeeder = new SparkFlex(9, MotorType.kBrushless);
+
     flyMotor1CLC = flywheelMotor1.getClosedLoopController();
     flyMotor1Encoder = flywheelMotor1.getEncoder();
 
     topFeederCLC = topFeeder.getClosedLoopController();
     topFeederEncoder = topFeeder.getEncoder();
+
+    bottomFeederCLC = bottomFeeder.getClosedLoopController();
 
     flywheelMotor1.configure(
         ShooterConstants.FLYWHEELMOTORCONFIG,
@@ -69,15 +80,22 @@ public class Shooter extends SubsystemBase {
         ShooterConstants.FEEDERMOTORCONFIG,
         ResetMode.kResetSafeParameters,
         PersistMode.kNoPersistParameters);
-    
+
     if (ShooterConstants.REVERSEFLYWHEEL) {
       revRPM = -1;
     }
 
+    flywheelSetpointRPM = 3000;
+
     // Shuffleboard configs
     shooterTab = Shuffleboard.getTab("Shooter");
     targetSendableRPM = shooterTab.add("Flywheel Target RPM", 0).getEntry();
-    encoderSendableRPM = shooterTab.add("Flywheel Encoder RPM", flyMotor1Encoder.getVelocity()).getEntry();
+    encoderSendableRPM =
+        shooterTab.add("Flywheel Encoder RPM", flyMotor1Encoder.getVelocity()).getEntry();
+
+    flywheelSendableRPM = shooterTab.add("Flywheel Setpoint RPM", 3000).getEntry();
+    feedSendableRPM = shooterTab.add("Feed Top Setpoint RPM", 500).getEntry();
+    feedBSendableRPM = shooterTab.add("Feed Bottom Setpoint RPM", 500).getEntry();
   }
 
   public void resetEncoders() {
@@ -89,8 +107,9 @@ public class Shooter extends SubsystemBase {
   // Shoot Functions
 
   public void setFlywheelRPM(double rpm) {
-    targetRPM = rpm * revRPM;
-    flyMotor1CLC.setSetpoint(targetRPM, ControlType.kVelocity);
+    // targetRPM = rpm;
+    flyMotor1CLC.setSetpoint(rpm, ControlType.kVelocity);
+    // flywheelMotor1.
   }
 
   public void stopFlywheel() {
@@ -108,8 +127,6 @@ public class Shooter extends SubsystemBase {
     setFlywheelRPM(ShooterConstants.BACKUPSHOOTERRPM);
   }
 
-
-
   // Feed Functions
   public void setTopFeed(double rpm) {
     topFeederCLC.setSetpoint(rpm, ControlType.kVelocity);
@@ -117,12 +134,26 @@ public class Shooter extends SubsystemBase {
 
   public void startFeed() {
     if (canShoot()) {
-      setTopFeed(ShooterConstants.FEEDERRPM);
+      setTopFeed(feedSendableRPM.getInteger(500));
     }
   }
 
   public void stopFeed() {
     setTopFeed(0);
+  }
+
+  public void setBottomFeed(double rpm) {
+    bottomFeederCLC.setSetpoint(rpm, ControlType.kVelocity);
+  }
+
+  public void startFeedB() {
+    if (canShoot()) {
+      setBottomFeed(feedBSendableRPM.getInteger(500));
+    }
+  }
+
+  public void stopFeedB() {
+    setBottomFeed(0);
   }
 
   public boolean canShoot() {
@@ -141,6 +172,7 @@ public class Shooter extends SubsystemBase {
     // Logging
     targetSendableRPM.setDouble(targetRPM);
     encoderSendableRPM.setDouble(flyMotor1Encoder.getVelocity());
+    flywheelSetpointRPM = Math.toIntExact(flywheelSendableRPM.getInteger(3000));
   }
 
   public void simulationPeriodic() {}
