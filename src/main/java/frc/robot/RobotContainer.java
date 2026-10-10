@@ -156,7 +156,7 @@ public class RobotContainer {
   }
 
   public void createShooter() {
-    shooter = new Shooter(robotIntake);
+    shooter = new Shooter();
     // Feed Function
     Trigger feedTrigger = controller.rightTrigger();
     feedTrigger.debounce(1);

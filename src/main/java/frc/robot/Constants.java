@@ -48,9 +48,10 @@ public final class Constants {
   public static final class ShooterConstants {
 
     // Can Id Configs
-    public static final int CANIDCONSTANTFLYWHEEL1 = 10;
-    public static final int CANIDCONSTANTFLYWHEEL2 = 11;
-    public static final int CANIDCONSTANTTOPFEEDER = 12;
+    public static final int CANIDBOTTOMFEEDER = 9;
+    public static final int CANIDFLYWHEEL1 = 10;
+    public static final int CANIDFLYWHEEL2 = 11;
+    public static final int CANIDTOPFEEDER = 12;
 
     // Flywheel PID configs
     public static final double kPflywheel = 0.0001;
@@ -76,12 +77,12 @@ public final class Constants {
     public static final double FEEDERRPM = 500;
 
     // Reverse Flywheel
-    public static final boolean REVERSEFLYWHEEL = false;
+    // 1 = Don't Reverse, -1 = Reverse
+    public static final int REVERSEFLYWHEEL = 1;
 
     // Flywheel configs
     public static final double BACKUPSHOOTERRPM = 3000;
     public static final InterpolatingDoubleTreeMap shooterMap = new InterpolatingDoubleTreeMap();
-
     static {
       // Update Shooter Tree Map
       // Key: distance (in meters)
@@ -105,7 +106,7 @@ public final class Constants {
           .feedForward
           .kV(kVflywheel, ClosedLoopSlot.kSlot0);
       
-      FOLLOWERMOTORCONFIG.follow(CANIDCONSTANTFLYWHEEL1,true).idleMode(IdleMode.kCoast);
+      FOLLOWERMOTORCONFIG.follow(CANIDFLYWHEEL1,true).idleMode(IdleMode.kCoast);
 
       FEEDERMOTORCONFIG.smartCurrentLimit(80).idleMode(IdleMode.kBrake);
 
@@ -120,6 +121,7 @@ public final class Constants {
           .outputRange(-1, 1, ClosedLoopSlot.kSlot0)
           .feedForward
           .kV(kVfeeder, ClosedLoopSlot.kSlot0);
-    }
+      }
+
   }
 }
