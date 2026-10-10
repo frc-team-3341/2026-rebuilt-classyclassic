@@ -98,12 +98,12 @@ public final class Constants {
       FLYWHEELMOTORCONFIG
           .closedLoop
           .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-          .p(kPflywheel, ClosedLoopSlot.kSlot1)
-          .i(kIflywheel, ClosedLoopSlot.kSlot1)
-          .d(kDflywheel, ClosedLoopSlot.kSlot1)
-          .outputRange(-1, 1, ClosedLoopSlot.kSlot1)
+          .p(kPflywheel, ClosedLoopSlot.kSlot0)
+          .i(kIflywheel, ClosedLoopSlot.kSlot0)
+          .d(kDflywheel, ClosedLoopSlot.kSlot0)
+          .outputRange(-1, 1, ClosedLoopSlot.kSlot0)
           .feedForward
-          .kV(kVflywheel, ClosedLoopSlot.kSlot1);
+          .kV(kVflywheel, ClosedLoopSlot.kSlot0);
 
       FOLLOWERMOTORCONFIG.follow(CANIDCONSTANTFLYWHEEL1, true);
 
@@ -114,12 +114,12 @@ public final class Constants {
       FEEDERMOTORCONFIG
           .closedLoop
           .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-          .p(kPfeeder, ClosedLoopSlot.kSlot1)
-          .i(kIfeeder, ClosedLoopSlot.kSlot1)
-          .d(kDfeeder, ClosedLoopSlot.kSlot1)
-          .outputRange(-1, 1, ClosedLoopSlot.kSlot1)
+          .p(kPfeeder, ClosedLoopSlot.kSlot0)
+          .i(kIfeeder, ClosedLoopSlot.kSlot0)
+          .d(kDfeeder, ClosedLoopSlot.kSlot0)
+          .outputRange(-1, 1, ClosedLoopSlot.kSlot0)
           .feedForward
-          .kV(kVfeeder, ClosedLoopSlot.kSlot1);
+          .kV(kVfeeder, ClosedLoopSlot.kSlot0);
     }
   }
 }
