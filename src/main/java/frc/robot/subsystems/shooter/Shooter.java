@@ -76,7 +76,13 @@ public class Shooter extends SubsystemBase {
         ShooterConstants.FOLLOWERMOTORCONFIG,
         ResetMode.kResetSafeParameters,
         PersistMode.kNoPersistParameters);
+
     topFeeder.configure(
+        ShooterConstants.FEEDERMOTORCONFIG,
+        ResetMode.kResetSafeParameters,
+        PersistMode.kNoPersistParameters);
+
+    bottomFeeder.configure(
         ShooterConstants.FEEDERMOTORCONFIG,
         ResetMode.kResetSafeParameters,
         PersistMode.kNoPersistParameters);
@@ -107,7 +113,8 @@ public class Shooter extends SubsystemBase {
   // Shoot Functions
 
   public void setFlywheelRPM(double rpm) {
-    // targetRPM = rpm;
+    targetRPM = rpm;
+    System.out.println(flyMotor1CLC);
     flyMotor1CLC.setSetpoint(rpm, ControlType.kVelocity);
     // flywheelMotor1.
   }
