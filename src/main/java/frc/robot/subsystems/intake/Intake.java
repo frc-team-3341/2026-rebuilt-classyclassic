@@ -5,97 +5,110 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.ControlType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import com.revrobotics.spark.SparkClosedLoopController;
 import frc.robot.Constants.IntakeConstants;
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+
 
 public class Intake extends SubsystemBase {
-  // Intake motor
+  // Lower Intake motor
   private SparkFlex intakeBall;
   // Agitates hopper
   private SparkFlex hopperMovement;
   // Raises & Lowers intake
   private SparkMax turnIntake;
+  private SparkClosedLoopController turnIntakeCLC;
 
-  private boolean motorIsOn;
+  private ShuffleboardTab intakeTab;
 
   public Intake() {
     intakeBall = new SparkFlex(IntakeConstants.CANIDINTAKEROLLERS, MotorType.kBrushless);
     hopperMovement = new SparkFlex(IntakeConstants.CANIDHOPPER, MotorType.kBrushless);
     turnIntake = new SparkMax(IntakeConstants.CANIDINTAKEARM, MotorType.kBrushless);
 
-    motorIsOn = false;
-
     intakeBall.configure(
         IntakeConstants.intakeBallConfig,
         ResetMode.kResetSafeParameters,
         PersistMode.kPersistParameters);
+    
+    hopperMovement.configure(
+        IntakeConstants.intakeBallConfig,
+        ResetMode.kResetSafeParameters,
+        PersistMode.kPersistParameters);
+    
     turnIntake.configure(
         IntakeConstants.turnIntakeConfig,
         ResetMode.kResetSafeParameters,
         PersistMode.kPersistParameters);
+    
+    turnIntakeCLC = turnIntake.getClosedLoopController();
+    
   }
 
   public void periodic() {}
 
-  public Command runIntakeBall() {
-    return runOnce(
-        () -> {
-          intakeBall.set(0.25);
-        });
+  // Turn Intake Functions
+  public void setTurnIntake(double rpm) {
+    turnIntakeCLC.setSetpoint(rpm, ControlType.kVelocity);
   }
 
-  public Command reverseIntakeBall() {
-    return runOnce(
-        () -> {
-          intakeBall.set(-0.25);
-        });
+  public void stopTurnIntake() {
+    setTurnIntake(0.0);
   }
 
-  public Command runTurnIntake() {
-    return runOnce(
-        () -> {
-          turnIntake.set(0.25);
-        });
+  public boolean canTurnIntake() {return false;}
+
+  public Command startTurnIntake() {
+    return runOnce(() -> {
+      setTurnIntake(200);
+    });
   }
 
-  public Command stopTurnIntake() {
-    return runOnce(
-        () -> {
-          turnIntake.set(0);
-        });
+  public Command reverseTurnIntake() {
+    return runOnce(() -> {
+      setTurnIntake(-200);
+    });
   }
 
-  public Command stopIntakeBall() {
-    return runOnce(
-        () -> {
-          intakeBall.set(0);
-        });
+  // Hopper Functions
+
+  public void setHopper(double power) {
+    hopperMovement.set(power);
   }
 
-  public void setMotorOn(boolean val) {
-    motorIsOn = val;
+  public Command startHopper() {
+    return runOnce(() -> {
+      setHopper(IntakeConstants.hopperPower);
+    });
   }
 
-  public boolean getMotorOn() {
-    return motorIsOn;
+  public Command stopHopper() {
+    return runOnce(() -> {
+      setHopper(0);
+    });
   }
 
-  public Command setMotorCommandOn(boolean val) {
-    return runOnce(
-        () -> {
-          motorIsOn = val;
-        });
+  // Lower Ball Intake Functions
+  public void setIntake(double power) {
+    intakeBall.set(power);
   }
 
-  public Command keepOn() {
-    return runOnce(
-        () -> {
-          if (getMotorOn()) {
-            setMotorOn(false);
-          } else {
-            setMotorOn(true);
-          }
-        });
+  public Command startIntake() {
+    return runOnce(() -> {
+      startHopper();
+      setIntake(IntakeConstants.intakeBallPower);
+    });
+  }
+
+  public Command stopIntake() {
+    return runOnce(() -> {
+      stopHopper();
+      setIntake(0);
+    });
   }
 }

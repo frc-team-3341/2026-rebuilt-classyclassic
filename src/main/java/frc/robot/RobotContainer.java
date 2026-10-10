@@ -170,21 +170,17 @@ public class RobotContainer {
     flywheelTrigger.toggleOnFalse(Commands.runOnce(() -> shooter.stopFlywheel()));
   }
 
-  public void createIntake() {
+  public void createIntake() {  
     robotIntake = new Intake();
 
-    Trigger motorOutputOn = controller.a();
-    motorOutputOn.onTrue(robotIntake.runIntakeBall());
+    // Bottom Feed Trigger
+    Trigger bottomFeedTrigger = controller.a();
+    bottomFeedTrigger.onTrue(robotIntake.startIntake()).onFalse(robotIntake.stopIntake());
 
-    Trigger motorBackwards = controller.b();
-    motorBackwards.onTrue(robotIntake.reverseIntakeBall()).onFalse(robotIntake.stopIntakeBall());
+    // Hopper Feed trigger
+    Trigger hopperTrigger = controller.b();
+    hopperTrigger.onTrue(robotIntake.startHopper()).onFalse(robotIntake.stopHopper());
 
-    controller.a().onTrue(robotIntake.keepOn());
-    Trigger keepOn =
-        new Trigger(
-            () -> {
-              return robotIntake.getMotorOn();
-            });
-    keepOn.toggleOnFalse(robotIntake.stopIntakeBall());
+
   }
 }

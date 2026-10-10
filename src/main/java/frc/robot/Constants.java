@@ -7,6 +7,7 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveRequest.Idle;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
@@ -43,7 +44,44 @@ public final class Constants {
     public static final SparkFlexConfig intakeBallConfig = new SparkFlexConfig();
     public static final SparkFlexConfig hopperMovementConfig = new SparkFlexConfig();
     public static final SparkMaxConfig turnIntakeConfig = new SparkMaxConfig();
+
+    public static final double kPturn = 0.0001;
+    public static final double kIturn = 0.0;
+    public static final double kDturn = 0.0;
+    public static final double kVturn = 12.0 / 5767;
+
+    public static final double intakeBallPower = 0.25;
+    public static final double hopperPower = 0.25;
+
+    public static final boolean intakeBallReverse = false;
+    public static final boolean intakeTurnReverse = false;
+    public static final boolean intakeHopperReverse = false;
+
+    static {
+        turnIntakeConfig
+          .closedLoop
+          .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+          .p(kPturn, ClosedLoopSlot.kSlot0)
+          .i(kIturn, ClosedLoopSlot.kSlot0)
+          .d(kDturn, ClosedLoopSlot.kSlot0)
+          .outputRange(-1, 1, ClosedLoopSlot.kSlot0)
+          .feedForward
+          .kV(kVturn, ClosedLoopSlot.kSlot0);
+        
+        turnIntakeConfig
+          .inverted(intakeTurnReverse)
+          .idleMode(IdleMode.kBrake);
+
+        intakeBallConfig
+          .inverted(intakeBallReverse)
+          .idleMode(IdleMode.kBrake);
+
+        hopperMovementConfig
+          .inverted(intakeHopperReverse)
+          .idleMode(IdleMode.kBrake);
+    }
   }
+
 
   public static final class ShooterConstants {
 
