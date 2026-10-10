@@ -11,6 +11,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 
 public class VisionConstants {
   // AprilTag layout
@@ -20,6 +21,9 @@ public class VisionConstants {
   // Camera names, must match names configured on coprocessor
   public static String camera0Name = "camera_0";
   public static String camera1Name = "camera_1";
+
+  public static final Transform3d kRobotToCam =
+      new Transform3d(new Translation3d(0.5, 0.0, 0.5), new Rotation3d(0, 0, 0));
 
   // Robot to camera transforms
   // (Not used by Limelight, configure in web UI instead)
