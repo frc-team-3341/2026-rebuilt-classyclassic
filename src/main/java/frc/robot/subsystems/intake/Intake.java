@@ -2,18 +2,15 @@ package frc.robot.subsystems.intake;
 
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.ControlType;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import com.revrobotics.spark.SparkClosedLoopController;
 import frc.robot.Constants.IntakeConstants;
-import edu.wpi.first.networktables.GenericEntry;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-
 
 public class Intake extends SubsystemBase {
   // Lower Intake motor
@@ -35,19 +32,18 @@ public class Intake extends SubsystemBase {
         IntakeConstants.intakeBallConfig,
         ResetMode.kResetSafeParameters,
         PersistMode.kPersistParameters);
-    
+
     hopperMovement.configure(
         IntakeConstants.intakeBallConfig,
         ResetMode.kResetSafeParameters,
         PersistMode.kPersistParameters);
-    
+
     turnIntake.configure(
         IntakeConstants.turnIntakeConfig,
         ResetMode.kResetSafeParameters,
         PersistMode.kPersistParameters);
-    
+
     turnIntakeCLC = turnIntake.getClosedLoopController();
-    
   }
 
   public void periodic() {}
@@ -61,18 +57,22 @@ public class Intake extends SubsystemBase {
     setTurnIntake(0.0);
   }
 
-  public boolean canTurnIntake() {return false;}
+  public boolean canTurnIntake() {
+    return false;
+  }
 
   public Command startTurnIntake() {
-    return runOnce(() -> {
-      setTurnIntake(200);
-    });
+    return runOnce(
+        () -> {
+          setTurnIntake(200);
+        });
   }
 
   public Command reverseTurnIntake() {
-    return runOnce(() -> {
-      setTurnIntake(-200);
-    });
+    return runOnce(
+        () -> {
+          setTurnIntake(-200);
+        });
   }
 
   // Hopper Functions
@@ -82,15 +82,17 @@ public class Intake extends SubsystemBase {
   }
 
   public Command startHopper() {
-    return runOnce(() -> {
-      setHopper(IntakeConstants.hopperPower);
-    });
+    return runOnce(
+        () -> {
+          setHopper(IntakeConstants.hopperPower);
+        });
   }
 
   public Command stopHopper() {
-    return runOnce(() -> {
-      setHopper(0);
-    });
+    return runOnce(
+        () -> {
+          setHopper(0);
+        });
   }
 
   // Lower Ball Intake Functions
@@ -99,16 +101,18 @@ public class Intake extends SubsystemBase {
   }
 
   public Command startIntake() {
-    return runOnce(() -> {
-      startHopper();
-      setIntake(IntakeConstants.intakeBallPower);
-    });
+    return runOnce(
+        () -> {
+          startHopper();
+          setIntake(IntakeConstants.intakeBallPower);
+        });
   }
 
   public Command stopIntake() {
-    return runOnce(() -> {
-      stopHopper();
-      setIntake(0);
-    });
+    return runOnce(
+        () -> {
+          stopHopper();
+          setIntake(0);
+        });
   }
 }

@@ -7,7 +7,6 @@
 
 package frc.robot;
 
-import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveRequest.Idle;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
@@ -58,7 +57,7 @@ public final class Constants {
     public static final boolean intakeHopperReverse = false;
 
     static {
-        turnIntakeConfig
+      turnIntakeConfig
           .closedLoop
           .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
           .p(kPturn, ClosedLoopSlot.kSlot0)
@@ -67,21 +66,14 @@ public final class Constants {
           .outputRange(-1, 1, ClosedLoopSlot.kSlot0)
           .feedForward
           .kV(kVturn, ClosedLoopSlot.kSlot0);
-        
-        turnIntakeConfig
-          .inverted(intakeTurnReverse)
-          .idleMode(IdleMode.kBrake);
 
-        intakeBallConfig
-          .inverted(intakeBallReverse)
-          .idleMode(IdleMode.kBrake);
+      turnIntakeConfig.inverted(intakeTurnReverse).idleMode(IdleMode.kBrake);
 
-        hopperMovementConfig
-          .inverted(intakeHopperReverse)
-          .idleMode(IdleMode.kBrake);
+      intakeBallConfig.inverted(intakeBallReverse).idleMode(IdleMode.kBrake);
+
+      hopperMovementConfig.inverted(intakeHopperReverse).idleMode(IdleMode.kBrake);
     }
   }
-
 
   public static final class ShooterConstants {
 

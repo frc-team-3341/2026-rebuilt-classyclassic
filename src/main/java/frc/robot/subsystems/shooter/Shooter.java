@@ -90,8 +90,8 @@ public class Shooter extends SubsystemBase {
     // Shuffleboard configs
     shooterTab = Shuffleboard.getTab("Shooter");
     targetSendableRPM = shooterTab.add("Flywheel Target RPM", 0).getEntry();
-    encoderSendableRPM = shooterTab.add("Flywheel Encoder RPM", flyMotor1Encoder.getVelocity()).getEntry();
-
+    encoderSendableRPM =
+        shooterTab.add("Flywheel Encoder RPM", flyMotor1Encoder.getVelocity()).getEntry();
 
     flywheelSendableRPM = shooterTab.add("Flywheel Setpoint RPM", 3000).getEntry();
     feedSendableRPM = shooterTab.add("Feed Top Setpoint RPM", 500).getEntry();
