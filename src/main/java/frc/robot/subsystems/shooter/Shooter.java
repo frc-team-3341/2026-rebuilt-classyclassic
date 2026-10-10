@@ -40,6 +40,7 @@ public class Shooter extends SubsystemBase {
   ShuffleboardTab shooterTab;
   GenericEntry targetSendableRPM;
   GenericEntry encoderSendableRPM;
+
   GenericEntry flywheelSendableRPM;
   GenericEntry feedSendableRPM;
   GenericEntry feedBSendableRPM;
@@ -89,20 +90,14 @@ public class Shooter extends SubsystemBase {
     // Shuffleboard configs
     shooterTab = Shuffleboard.getTab("Shooter");
     targetSendableRPM = shooterTab.add("Flywheel Target RPM", 0).getEntry();
-    encoderSendableRPM =
-        shooterTab.add("Flywheel Encoder RPM", flyMotor1Encoder.getVelocity()).getEntry();
+    encoderSendableRPM = shooterTab.add("Flywheel Encoder RPM", flyMotor1Encoder.getVelocity()).getEntry();
+
 
     flywheelSendableRPM = shooterTab.add("Flywheel Setpoint RPM", 3000).getEntry();
     feedSendableRPM = shooterTab.add("Feed Top Setpoint RPM", 500).getEntry();
     feedBSendableRPM = shooterTab.add("Feed Bottom Setpoint RPM", 500).getEntry();
   }
 
-  public void resetEncoders() {
-    flyMotor1Encoder.setPosition(0);
-    flyMotor2Encoder.setPosition(0);
-    topFeederEncoder.setPosition(0);
-    bottomFeederEncoder.setPosition(0);
-  }
 
   // Shoot Functions
 
@@ -128,6 +123,7 @@ public class Shooter extends SubsystemBase {
   }
 
   // Feed Functions
+
   public void setTopFeed(double rpm) {
     topFeederCLC.setSetpoint(rpm, ControlType.kVelocity);
   }
@@ -146,6 +142,13 @@ public class Shooter extends SubsystemBase {
   public void stopFeed() {
     setTopFeed(0);
     setBottomFeed(0);
+  }
+
+  // Utility Functions
+
+  public double getShootRPM(double distance) {
+    // Returns RPM from distance to target in meters
+    return ShooterConstants.shooterMap.get(distance);
   }
 
   public boolean canShoot() {
