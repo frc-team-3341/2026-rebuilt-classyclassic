@@ -62,14 +62,14 @@ public class DriveConstants {
   // Wheel Rad/Sec
 
   // Drive PID configuration
-  public static final double driveKp = 0.0;
+  public static final double driveKp = 0.0015;
   public static final double driveKd = 0.0;
   public static final double driveKs = 0.0;
-  public static final double driveKv = 0.1;
   public static final double driveSimP = 0.4;
   public static final double driveSimD = 0.0;
   public static final double driveSimKs = 0.1;
   public static final double driveSimKv = driveMotorReduction / driveGearbox.KvRadPerSecPerVolt;
+  public static final double driveKv = driveSimKv;
 
   // Turn motor configuration
   public static final boolean turnInverted = false;
@@ -83,7 +83,7 @@ public class DriveConstants {
   public static final double turnEncoderVelocityFactor = (2 * Math.PI) / 60.0; // RPM -> Rad/Sec
 
   // Turn PID configuration
-  public static final double turnKp = 2.0;
+  public static final double turnKp = 1.0;
   public static final double turnKd = 0.0;
   public static final double turnSimP = 8.0;
   public static final double turnSimD = 0.0;
