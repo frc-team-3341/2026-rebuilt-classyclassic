@@ -40,7 +40,7 @@ public class Shooter extends SubsystemBase {
   ShuffleboardTab shooterTab;
   GenericEntry targetSendableRPM;
   GenericEntry encoderSendableRPM;
-
+  GenericEntry canShootSendable;
   GenericEntry flywheelSendableRPM;
   GenericEntry feedSendableRPM;
   GenericEntry feedBSendableRPM;
@@ -78,12 +78,12 @@ public class Shooter extends SubsystemBase {
         PersistMode.kNoPersistParameters);
 
     topFeeder.configure(
-        ShooterConstants.FEEDERMOTORCONFIG,
+        ShooterConstants.FEEDERMOTORCONFIG.inverted(true),
         ResetMode.kResetSafeParameters,
         PersistMode.kNoPersistParameters);
 
     bottomFeeder.configure(
-        ShooterConstants.FEEDERMOTORCONFIG,
+        ShooterConstants.FEEDERMOTORCONFIG.inverted(false),
         ResetMode.kResetSafeParameters,
         PersistMode.kNoPersistParameters);
 
@@ -96,8 +96,15 @@ public class Shooter extends SubsystemBase {
     flywheelSendableRPM = shooterTab.add("Flywheel Setpoint RPM", 3000).getEntry();
     feedSendableRPM = shooterTab.add("Feed Top Setpoint RPM", 500).getEntry();
     feedBSendableRPM = shooterTab.add("Feed Bottom Setpoint RPM", 500).getEntry();
+    canShootSendable = shooterTab.add("Shooter CanShoot?", false).getEntry();
   }
 
+  public void resetEncoders() {
+    flyMotor1Encoder.setPosition(0);
+    flyMotor2Encoder.setPosition(0);
+    topFeederEncoder.setPosition(0);
+    bottomFeederEncoder.setPosition(0);
+  }
 
   // Shoot Functions
 
@@ -170,6 +177,7 @@ public class Shooter extends SubsystemBase {
     flywheelSetpointRPM = Math.toIntExact(flywheelSendableRPM.getInteger(3000));
     feedSetpointRPM = Math.toIntExact(feedSendableRPM.getInteger(500));
     feedBSetpointRPM = Math.toIntExact(feedBSendableRPM.getInteger(500));
+    canShootSendable.setBoolean(canShoot());
   }
 
   public void simulationPeriodic() {}

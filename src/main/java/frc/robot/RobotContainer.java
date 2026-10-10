@@ -168,11 +168,6 @@ public class RobotContainer {
     flywheelTrigger.debounce(1);
     flywheelTrigger.toggleOnTrue(Commands.runOnce(() -> shooter.shoot()));
     flywheelTrigger.toggleOnFalse(Commands.runOnce(() -> shooter.stopFlywheel()));
-
-    Trigger feedBTrigger = controller.leftTrigger();
-    feedBTrigger.debounce(1);
-    feedBTrigger.toggleOnTrue(Commands.runOnce(() -> shooter.startFeedB()));
-    feedBTrigger.toggleOnFalse(Commands.runOnce(() -> shooter.stopFeedB()));
   }
 
   public void createIntake() {
