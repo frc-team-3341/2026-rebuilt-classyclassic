@@ -83,6 +83,7 @@ public final class Constants {
     // Flywheel configs
     public static final double BACKUPSHOOTERRPM = 3000;
     public static final InterpolatingDoubleTreeMap shooterMap = new InterpolatingDoubleTreeMap();
+
     static {
       // Update Shooter Tree Map
       // Key: distance (in meters)
@@ -105,8 +106,8 @@ public final class Constants {
           .outputRange(-1, 1, ClosedLoopSlot.kSlot0)
           .feedForward
           .kV(kVflywheel, ClosedLoopSlot.kSlot0);
-      
-      FOLLOWERMOTORCONFIG.follow(CANIDFLYWHEEL1,true).idleMode(IdleMode.kCoast);
+
+      FOLLOWERMOTORCONFIG.follow(CANIDFLYWHEEL1, true).idleMode(IdleMode.kCoast);
 
       FEEDERMOTORCONFIG.smartCurrentLimit(80).idleMode(IdleMode.kBrake);
 
@@ -121,7 +122,6 @@ public final class Constants {
           .outputRange(-1, 1, ClosedLoopSlot.kSlot0)
           .feedForward
           .kV(kVfeeder, ClosedLoopSlot.kSlot0);
-      }
-
+    }
   }
 }

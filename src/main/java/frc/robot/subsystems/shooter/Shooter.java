@@ -33,6 +33,8 @@ public class Shooter extends SubsystemBase {
   private double targetRPM;
 
   private int flywheelSetpointRPM;
+  private int feedSetpointRPM;
+  private int feedBSetpointRPM;
 
   // Shuffleboard
   ShuffleboardTab shooterTab;
@@ -84,8 +86,6 @@ public class Shooter extends SubsystemBase {
         ResetMode.kResetSafeParameters,
         PersistMode.kNoPersistParameters);
 
-    flywheelSetpointRPM = 3000;
-
     // Shuffleboard configs
     shooterTab = Shuffleboard.getTab("Shooter");
     targetSendableRPM = shooterTab.add("Flywheel Target RPM", 0).getEntry();
@@ -101,6 +101,7 @@ public class Shooter extends SubsystemBase {
     flyMotor1Encoder.setPosition(0);
     flyMotor2Encoder.setPosition(0);
     topFeederEncoder.setPosition(0);
+    bottomFeederEncoder.setPosition(0);
   }
 
   // Shoot Functions
@@ -118,7 +119,7 @@ public class Shooter extends SubsystemBase {
 
   public void shoot() {
     // Placeholder speed
-    setFlywheelRPM(3000);
+    setFlywheelRPM(flywheelSetpointRPM);
   }
 
   public void backupShoot() {
@@ -131,27 +132,19 @@ public class Shooter extends SubsystemBase {
     topFeederCLC.setSetpoint(rpm, ControlType.kVelocity);
   }
 
+  public void setBottomFeed(double rpm) {
+    bottomFeederCLC.setSetpoint(rpm, ControlType.kVelocity);
+  }
+
   public void startFeed() {
     if (canShoot()) {
-      setTopFeed(feedSendableRPM.getInteger(500));
+      setTopFeed(feedSetpointRPM);
+      setBottomFeed(feedBSetpointRPM);
     }
   }
 
   public void stopFeed() {
     setTopFeed(0);
-  }
-
-  public void setBottomFeed(double rpm) {
-    bottomFeederCLC.setSetpoint(rpm, ControlType.kVelocity);
-  }
-
-  public void startFeedB() {
-    if (canShoot()) {
-      setBottomFeed(feedBSendableRPM.getInteger(500));
-    }
-  }
-
-  public void stopFeedB() {
     setBottomFeed(0);
   }
 
@@ -172,6 +165,8 @@ public class Shooter extends SubsystemBase {
     targetSendableRPM.setDouble(targetRPM);
     encoderSendableRPM.setDouble(flyMotor1Encoder.getVelocity());
     flywheelSetpointRPM = Math.toIntExact(flywheelSendableRPM.getInteger(3000));
+    feedSetpointRPM = Math.toIntExact(feedSendableRPM.getInteger(500));
+    feedBSetpointRPM = Math.toIntExact(feedBSendableRPM.getInteger(500));
   }
 
   public void simulationPeriodic() {}
