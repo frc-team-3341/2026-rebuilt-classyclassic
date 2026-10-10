@@ -76,9 +76,10 @@ public final class Constants {
     // Feeder Configs
     public static final double FEEDERRPM = 500;
 
-    // Reverse Flywheel
-    // 1 = Don't Reverse, -1 = Reverse
-    public static final int REVERSEFLYWHEEL = 1;
+    // Reverse Motors
+    public static final boolean REVERSEFLYWHEEL = false;
+    public static final boolean REVERSEBOTTOMFEEDER = true;
+    public static final boolean REVERSETOPFEEDER = true;
 
     // Flywheel configs
     public static final double BACKUPSHOOTERRPM = 3000;
@@ -106,6 +107,8 @@ public final class Constants {
           .outputRange(-1, 1, ClosedLoopSlot.kSlot0)
           .feedForward
           .kV(kVflywheel, ClosedLoopSlot.kSlot0);
+
+      FLYWHEELMOTORCONFIG.inverted(REVERSEFLYWHEEL);
 
       FOLLOWERMOTORCONFIG.follow(CANIDFLYWHEEL1, true).idleMode(IdleMode.kCoast);
 
