@@ -48,6 +48,9 @@ public class RobotContainer {
   // Intake
   private Intake robotIntake;
 
+  // Drive Mode driveMode
+  private int driveMode;
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     switch (Constants.currentMode) {
@@ -111,6 +114,8 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+    driveMode = 0;
+    // configureDrive();
   }
 
   /**
@@ -119,17 +124,23 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
-  private void configureButtonBindings() {
-    // Default command, normal field-relative drive
-    /*
-    drive.setDefaultCommand(
-        DriveCommands.joystickDrive(
-            drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
-    */
+  private void configureDrive() {
+    if (driveMode == 0) {
+      // Default command, normal field-relative drive
+      drive.setDefaultCommand(
+          DriveCommands.joystickDrive(
+              drive,
+              () -> -controller.getLeftY(),
+              () -> -controller.getLeftX(),
+              () -> -controller.getRightX()));
+      driveMode = 1;
+    } else {
+      // Insert hub-relative drive here
+      driveMode = 0;
+    }
+  }
 
+  private void configureButtonBindings() {
     // Reset gyro to 0° when B button is pressed
     controller
         .x()
@@ -140,6 +151,14 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));
+
+    controller
+        .y()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  configureDrive();
+                }));
     // controller.x().onTrue(Commands.runOnce(() -> AutoCommands.HubCentric(drive)));
 
     // below line to be replaced with flywheel spin function later

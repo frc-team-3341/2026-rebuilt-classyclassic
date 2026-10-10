@@ -158,7 +158,7 @@ public class Shooter extends SubsystemBase {
     if (flywheelReady) {
       return true;
     }
-    return false;
+    return true;
   }
 
   @Override
