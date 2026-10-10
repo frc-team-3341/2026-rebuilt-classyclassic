@@ -60,7 +60,7 @@ public class RobotContainer {
                 new ModuleIOSpark(1),
                 new ModuleIOSpark(2),
                 new ModuleIOSpark(3));
-        createIntake();
+        // createIntake();
         createShooter();
         break;
 
@@ -73,6 +73,7 @@ public class RobotContainer {
                 new ModuleIOSim(),
                 new ModuleIOSim(),
                 new ModuleIOSim());
+        createShooter();
         break;
 
       default:
@@ -84,7 +85,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        createIntake();
+        // createIntake();
         createShooter();
         break;
     }
@@ -120,29 +121,18 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     // Default command, normal field-relative drive
+    /*
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
             () -> -controller.getLeftY(),
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
-
-    // Lock to 0° when A button is held
-    controller
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> Rotation2d.kZero));
-
-    // Switch to X pattern when X button is pressed
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    */
 
     // Reset gyro to 0° when B button is pressed
     controller
-        .b()
+        .x()
         .onTrue(
             Commands.runOnce(
                     () ->
@@ -150,6 +140,7 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));
+    // controller.x().onTrue(Commands.runOnce(() -> AutoCommands.HubCentric(drive)));
 
     // below line to be replaced with flywheel spin function later
     // controller.a().onTrue(Commands.runOnce(() -> shooter.newPSetpoint(0.0), shooter));
@@ -169,23 +160,19 @@ public class RobotContainer {
     // Feed Function
     Trigger feedTrigger = controller.rightTrigger();
     feedTrigger.debounce(1);
-    feedTrigger.onTrue(Commands.runOnce(() -> 
-      shooter.startFeed()
-    ));
-    feedTrigger.onFalse(Commands.runOnce(() -> 
-      shooter.stopFeed()
-    ));
+    feedTrigger.onTrue(Commands.runOnce(() -> shooter.startFeed()));
+    feedTrigger.onFalse(Commands.runOnce(() -> shooter.stopFeed()));
 
     // Start Flywheel
     Trigger flywheelTrigger = controller.rightBumper();
     flywheelTrigger.debounce(1);
-    flywheelTrigger.toggleOnTrue(Commands.runOnce(() -> 
-      shooter.shoot()
-    ));
-    flywheelTrigger.toggleOnFalse(Commands.runOnce(() -> 
-      shooter.stopFlywheel()
-    ));
+    flywheelTrigger.toggleOnTrue(Commands.runOnce(() -> shooter.shoot()));
+    flywheelTrigger.toggleOnFalse(Commands.runOnce(() -> shooter.stopFlywheel()));
 
+    Trigger feedBTrigger = controller.leftTrigger();
+    feedBTrigger.debounce(1);
+    feedBTrigger.toggleOnTrue(Commands.runOnce(() -> shooter.startFeedB()));
+    feedBTrigger.toggleOnFalse(Commands.runOnce(() -> shooter.stopFeedB()));
   }
 
   public void createIntake() {
