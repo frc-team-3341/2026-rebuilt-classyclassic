@@ -49,7 +49,7 @@ public class RobotContainer {
   private Intake robotIntake;
 
   // Drive Mode driveMode
-  private int driveMode;
+  private Boolean driveMode;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -114,7 +114,7 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
-    driveMode = 0;
+    driveMode = false;
     // configureDrive();
   }
 
@@ -125,19 +125,19 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureDrive() {
-    if (driveMode == 0) {
-      // Default command, normal field-relative drive
-      drive.setDefaultCommand(
-          DriveCommands.joystickDrive(
-              drive,
-              () -> -controller.getLeftY(),
-              () -> -controller.getLeftX(),
-              () -> -controller.getRightX()));
-      driveMode = 1;
+    // Default command, normal field-relative drive
+    drive.setDefaultCommand(
+        DriveCommands.joystickDrive(
+            drive,
+            () -> -controller.getLeftY(),
+            () -> -controller.getLeftX(),
+            () -> -controller.getRightX(),
+            driveMode));
+    if (driveMode) {
+      driveMode = false;
     } else {
-      // Insert hub-relative drive here
-      driveMode = 0;
-    }
+      driveMode = true;
+    } // toggles driveMode
   }
 
   private void configureButtonBindings() {
@@ -159,7 +159,6 @@ public class RobotContainer {
                 () -> {
                   configureDrive();
                 }));
-    // controller.x().onTrue(Commands.runOnce(() -> AutoCommands.HubCentric(drive)));
 
     // below line to be replaced with flywheel spin function later
     // controller.a().onTrue(Commands.runOnce(() -> shooter.newPSetpoint(0.0), shooter));

@@ -7,7 +7,10 @@
 
 package frc.robot.commands;
 
+import com.studica.frc.AHRS;
+import com.studica.frc.AHRS.NavXComType;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -41,6 +44,7 @@ public class DriveCommands {
   private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
+  private static final AHRS navx = new AHRS(NavXComType.kMXP_SPI); // navx
 
   private DriveCommands() {}
 
@@ -65,25 +69,47 @@ public class DriveCommands {
       Drive drive,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
-      DoubleSupplier omegaSupplier) {
+      DoubleSupplier omegaSupplier,
+      Boolean aimDrive) {
     return Commands.run(
         () -> {
+          double omegafinal;
           // Get linear velocity
           Translation2d linearVelocity =
               getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
 
-          // Apply rotation deadband
-          double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
+          if (aimDrive) {
+            // Square rotation value for more precise control
+            // Apply rotation deadband
+            double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
+            omega = Math.copySign(omega * omega, omega);
+            omegafinal = omega * drive.getMaxAngularSpeedRadPerSec();
+          } else {
+            Pose2d currentPose = drive.getPose();
+            Translation2d hubCenterPose =
+                new Translation2d(10, 10); // placeholder until constants can be confirmed
 
-          // Square rotation value for more precise control
-          omega = Math.copySign(omega * omega, omega);
+            double theta;
+
+            double xDisplacement = (hubCenterPose.getX() - currentPose.getX());
+            double yDisplacement = (hubCenterPose.getY() - currentPose.getY());
+
+            theta = Math.toDegrees(Math.atan2(yDisplacement, xDisplacement));
+            theta += 180;
+
+            // PID controller to be revised later (from last years code)
+            PIDController aimDriveController = new PIDController(0.05, 0, 0);
+            aimDriveController.enableContinuousInput(-180, 180);
+            aimDriveController.setTolerance(0.5);
+            omegafinal = aimDriveController.calculate(navx.getRotation2d().getDegrees(), theta);
+          }
 
           // Convert to field relative speeds & send command
           ChassisSpeeds speeds =
               new ChassisSpeeds(
                   linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
                   linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
-                  omega * drive.getMaxAngularSpeedRadPerSec());
+                  omegafinal);
           boolean isFlipped =
               DriverStation.getAlliance().isPresent()
                   && DriverStation.getAlliance().get() == Alliance.Red;
