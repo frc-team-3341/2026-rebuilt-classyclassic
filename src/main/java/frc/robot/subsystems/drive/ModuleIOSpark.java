@@ -60,10 +60,9 @@ public class ModuleIOSpark implements ModuleIO {
       new Debouncer(0.5, Debouncer.DebounceType.kFalling);
 
   public ModuleIOSpark(int module) {
-    /*
+
     boolean drivingMotorOnBottom = false;
     boolean turningMotorOnBottom = false;
-    */
     zeroRotation =
         switch (module) {
           case 0 -> frontLeftZeroRotation;
@@ -92,15 +91,12 @@ public class ModuleIOSpark implements ModuleIO {
               default -> 0;
             },
             MotorType.kBrushless);
-    /* These were the values of inverted on 2026-REBUILT-FRC-3341. */
-    /*
     switch (module) {
       case 1:
         drivingMotorOnBottom = true;
       case 3:
         drivingMotorOnBottom = true;
     }
-    */
     driveEncoder = driveSpark.getEncoder();
     turnEncoder = turnSpark.getAbsoluteEncoder();
     driveController = driveSpark.getClosedLoopController();
