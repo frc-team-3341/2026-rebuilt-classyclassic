@@ -48,7 +48,7 @@ public class RobotContainer {
   // Intake
   private Intake robotIntake;
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
+  /** Th8e container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     switch (Constants.currentMode) {
       case REAL:
@@ -74,6 +74,7 @@ public class RobotContainer {
                 new ModuleIOSim(),
                 new ModuleIOSim());
         createShooter();
+        createIntake();
         break;
 
       default:
@@ -85,7 +86,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        // createIntake();
+        createIntake();
         createShooter();
         break;
     }
