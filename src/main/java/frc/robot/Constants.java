@@ -9,6 +9,8 @@ package frc.robot;
 
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.FeedbackSensor;
+import com.revrobotics.spark.config.LimitSwitchConfig.Behavior;
+import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -48,6 +50,8 @@ public final class Constants {
     public static final double kIturn = 0.0;
     public static final double kDturn = 0.0;
     public static final double kVturn = 12.0 / 5767;
+    public static final double kCosturn = 1.5;
+    public static final double kCosRationturn = 1.0 / 50;
 
     public static final double intakeBallPower = 0.25;
     public static final double hopperPower = 0.25;
@@ -65,7 +69,16 @@ public final class Constants {
           .d(kDturn, ClosedLoopSlot.kSlot0)
           .outputRange(-1, 1, ClosedLoopSlot.kSlot0)
           .feedForward
-          .kV(kVturn, ClosedLoopSlot.kSlot0);
+          .kV(kVturn, ClosedLoopSlot.kSlot0)
+          .kCos(kCosturn, ClosedLoopSlot.kSlot0)
+          .kCosRatio(kCosRationturn, ClosedLoopSlot.kSlot0);
+
+      turnIntakeConfig
+          .limitSwitch
+          .forwardLimitSwitchType(Type.kNormallyClosed)
+          .forwardLimitSwitchTriggerBehavior(Behavior.kStopMovingMotor)
+          .reverseLimitSwitchType(Type.kNormallyClosed)
+          .reverseLimitSwitchTriggerBehavior(Behavior.kStopMovingMotor);
 
       turnIntakeConfig.inverted(intakeTurnReverse).idleMode(IdleMode.kBrake);
 

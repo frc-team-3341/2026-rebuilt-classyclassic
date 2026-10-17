@@ -60,7 +60,7 @@ public class RobotContainer {
                 new ModuleIOSpark(1),
                 new ModuleIOSpark(2),
                 new ModuleIOSpark(3));
-        // createIntake();
+        createIntake();
         createShooter();
         break;
 
@@ -180,5 +180,8 @@ public class RobotContainer {
     // Hopper Feed trigger
     Trigger hopperTrigger = controller.b();
     hopperTrigger.onTrue(robotIntake.startHopper()).onFalse(robotIntake.stopHopper());
+
+    Trigger turnTrigger = controller.a();
+    turnTrigger.onTrue(robotIntake.startHopper());
   }
 }
