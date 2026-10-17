@@ -11,6 +11,7 @@ import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.config.LimitSwitchConfig.Behavior;
 import com.revrobotics.spark.config.LimitSwitchConfig.Type;
+import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -55,6 +56,8 @@ public final class Constants {
 
     public static final double intakeBallPower = 0.25;
     public static final double hopperPower = 0.25;
+    public static final double turnMaxAcceleration = 500; // In rpm per second
+    public static final double turnCruiseVelocity = 10.0 * 50; // 10 rpm & assumes gear ratio of 50, in rpm
 
     public static final boolean intakeBallReverse = false;
     public static final boolean intakeTurnReverse = false;
@@ -72,6 +75,12 @@ public final class Constants {
           .kV(kVturn, ClosedLoopSlot.kSlot0)
           .kCos(kCosturn, ClosedLoopSlot.kSlot0)
           .kCosRatio(kCosRationturn, ClosedLoopSlot.kSlot0);
+
+      turnIntakeConfig
+        .closedLoop.maxMotion
+        .allowedProfileError(0.1)
+        .maxAcceleration(turnMaxAcceleration)
+        .cruiseVelocity(turnCruiseVelocity);
 
       turnIntakeConfig
           .limitSwitch
