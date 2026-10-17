@@ -107,11 +107,11 @@ public class Drive extends SubsystemBase {
     modules[3] = new Module(brModuleIO, 3);
     desiredStatePublisher =
         NetworkTableInstance.getDefault()
-            .getStructArrayTopic("/SwerveStates_Desired", SwerveModuleState.struct)
+            .getStructArrayTopic("/AdvantageKit/SwerveStates_Desired", SwerveModuleState.struct)
             .publish();
     actualStatePublisher =
         NetworkTableInstance.getDefault()
-            .getStructArrayTopic("/SwerveStates_Actual", SwerveModuleState.struct)
+            .getStructArrayTopic("/AdvantageKit/SwerveStates_Actual", SwerveModuleState.struct)
             .publish();
     SmartDashboard.putData("Field", field);
 
@@ -157,21 +157,23 @@ public class Drive extends SubsystemBase {
 
     SwerveModuleStatePublisher =
         NetworkTableInstance.getDefault()
-            .getStructArrayTopic("/SwerveModuleStates", SwerveModuleState.struct)
+            .getStructArrayTopic("/AdvantageKit/SwerveModuleStates", SwerveModuleState.struct)
             .publish();
     // absStatePublisher =
     // NetworkTableInstance.getDefault().getStructArrayTopic("/SwerveModuleStates_abs",
     // SwerveModuleState.struct).publish();
     SweveModuleSetPointPublisher =
         NetworkTableInstance.getDefault()
-            .getStructArrayTopic("/SwerveStates_target", SwerveModuleState.struct)
+            .getStructArrayTopic("/AdvantageKit/SwerveStates_target", SwerveModuleState.struct)
             .publish();
     chassisSpeedsPublisher =
         NetworkTableInstance.getDefault()
-            .getStructTopic("/ChassisSpeeds", ChassisSpeeds.struct)
+            .getStructTopic("/AdvantageKit/ChassisSpeeds", ChassisSpeeds.struct)
             .publish();
     poseEstimatorPublisher =
-        NetworkTableInstance.getDefault().getStructTopic("/EstimatedPose", Pose2d.struct).publish();
+        NetworkTableInstance.getDefault()
+            .getStructTopic("/AdvantageKit/EstimatedPose", Pose2d.struct)
+            .publish();
   }
 
   @Override
