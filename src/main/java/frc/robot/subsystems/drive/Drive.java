@@ -57,6 +57,8 @@ public class Drive extends SubsystemBase {
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
   private final SysIdRoutine sysId;
   private final Consumer<Pose2d> resetSimulationPose;
+  private final StructArrayPublisher<SwerveModuleState> desiredStatePublisher;
+  private final StructArrayPublisher<SwerveModuleState> actualStatePublisher;
   private final Field2d field = new Field2d();
   private Pose2d[] activeTrajectory = new Pose2d[] {};
   private Pose2d trajectorySetpoint = Pose2d.kZero;
@@ -103,6 +105,14 @@ public class Drive extends SubsystemBase {
     modules[1] = new Module(frModuleIO, 1);
     modules[2] = new Module(blModuleIO, 2);
     modules[3] = new Module(brModuleIO, 3);
+    desiredStatePublisher =
+        NetworkTableInstance.getDefault()
+            .getStructArrayTopic("/SwerveStates_Desired", SwerveModuleState.struct)
+            .publish();
+    actualStatePublisher =
+        NetworkTableInstance.getDefault()
+            .getStructArrayTopic("/SwerveStates_Actual", SwerveModuleState.struct)
+            .publish();
     SmartDashboard.putData("Field", field);
 
     // Usage reporting for swerve template
@@ -173,6 +183,7 @@ public class Drive extends SubsystemBase {
       module.periodic();
     }
     odometryLock.unlock();
+    actualStatePublisher.set(getModuleStates());
 
     // Stop moving when disabled
     if (DriverStation.isDisabled()) {
@@ -185,6 +196,7 @@ public class Drive extends SubsystemBase {
     if (DriverStation.isDisabled()) {
       Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
       Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
+      desiredStatePublisher.set(new SwerveModuleState[] {});
     }
 
     // Update odometry
@@ -217,6 +229,7 @@ public class Drive extends SubsystemBase {
 
       // Apply update
       poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
+      poseEstimatorPublisher.set(poseEstimator.getEstimatedPosition());
     }
 
     // Update gyro alert
@@ -248,6 +261,7 @@ public class Drive extends SubsystemBase {
     for (int i = 0; i < 4; i++) {
       modules[i].runSetpoint(setpointStates[i]);
     }
+    desiredStatePublisher.set(setpointStates);
 
     // Log optimized setpoints (runSetpoint mutates each state)
     Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
@@ -256,6 +270,7 @@ public class Drive extends SubsystemBase {
 
   /** Runs the drive in a straight line with the specified drive output. */
   public void runCharacterization(double output) {
+    desiredStatePublisher.set(new SwerveModuleState[] {});
     for (int i = 0; i < 4; i++) {
       modules[i].runCharacterization(output);
     }
