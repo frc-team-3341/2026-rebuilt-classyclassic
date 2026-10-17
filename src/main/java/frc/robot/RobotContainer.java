@@ -9,6 +9,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.drive.DriveConstants.*;
+import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -31,6 +32,10 @@ import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -59,6 +64,10 @@ public class RobotContainer {
   // Intake
   private Intake robotIntake;
 
+  @SuppressWarnings("unused")
+  private final Vision vision;
+
+  // private final GyroIOSim gyroIO = new GyroIOSim(null);
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     switch (Constants.currentMode) {
@@ -73,6 +82,11 @@ public class RobotContainer {
                 new ModuleIOSpark(3));
         // createIntake();
         createShooter();
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVision(camera0Name, robotToCamera0),
+                new VisionIOPhotonVision(camera1Name, robotToCamera1));
         break;
 
       case SIM:
@@ -110,6 +124,11 @@ public class RobotContainer {
                 });
         drive.setPose(driveSimulation.getSimulatedDriveTrainPose());
         createShooter();
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
+                new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
         break;
 
       default:
@@ -123,6 +142,7 @@ public class RobotContainer {
                 new ModuleIO() {});
         // createIntake();
         createShooter();
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;
     }
 
@@ -147,6 +167,8 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+
+    // vision = new Vision(drive::addVisionMeasurement);
   }
 
   /**
@@ -157,14 +179,12 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     // Default command, normal field-relative drive
-    /*
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
             () -> -controller.getLeftY(),
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
-    */
 
     // Reset gyro to 0° when B button is pressed
     controller
@@ -176,8 +196,8 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));
-    // controller.x().onTrue(Commands.runOnce(() -> AutoCommands.HubCentric(drive)));
 
+    // controller.x().onTrue(Commands.runOnce(() -> AutoCommands.HubCentric(drive)));
     // below line to be replaced with flywheel spin function later
     // controller.a().onTrue(Commands.runOnce(() -> shooter.newPSetpoint(0.0), shooter));
   }
@@ -214,8 +234,7 @@ public class RobotContainer {
 
     Trigger feedBTrigger = controller.leftTrigger();
     feedBTrigger.debounce(1);
-    feedBTrigger.toggleOnTrue(Commands.runOnce(() -> shooter.startFeedB()));
-    feedBTrigger.toggleOnFalse(Commands.runOnce(() -> shooter.stopFeedB()));
+    feedBTrigger.toggleOnTrue(Commands.runOnce(() -> shooter.startFeed()));
   }
 
   public void createIntake() {
