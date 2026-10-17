@@ -14,7 +14,6 @@ import static frc.robot.subsystems.vision.VisionConstants.*;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -91,25 +90,26 @@ public class RobotContainer {
 
       case SIM:
         // Sim robot, instantiate physics sim IO implementations
+        var SwerveDriveConfig =
+            DriveTrainSimulationConfig.Default()
+                .withRobotMass(Kilograms.of(robotMassKg))
+                .withBumperSize(Meters.of(bumperLengthMeters), Meters.of(bumperWidthMeters))
+                .withCustomModuleTranslations(moduleTranslations)
+                .withGyro(COTS.ofNav2X())
+                .withSwerveModule(
+                    new SwerveModuleSimulationConfig(
+                        driveGearbox,
+                        turnGearbox,
+                        driveMotorReduction,
+                        turnMotorReduction,
+                        Volts.of(driveSimKs),
+                        Volts.of(turnSimFrictionVolts),
+                        Meters.of(wheelRadiusMeters),
+                        KilogramSquareMeters.of(turnSimMOI),
+                        wheelCOF));
+
         driveSimulation =
-            new SwerveDriveSimulation(
-                DriveTrainSimulationConfig.Default()
-                    .withRobotMass(Kilograms.of(robotMassKg))
-                    .withBumperSize(Meters.of(bumperLengthMeters), Meters.of(bumperWidthMeters))
-                    .withCustomModuleTranslations(moduleTranslations)
-                    .withGyro(COTS.ofNav2X())
-                    .withSwerveModule(
-                        new SwerveModuleSimulationConfig(
-                            driveGearbox,
-                            turnGearbox,
-                            driveMotorReduction,
-                            turnMotorReduction,
-                            Volts.of(driveSimKs),
-                            Volts.of(turnSimFrictionVolts),
-                            Meters.of(wheelRadiusMeters),
-                            KilogramSquareMeters.of(turnSimMOI),
-                            wheelCOF)),
-                new Pose2d(2.0, 2.0, Rotation2d.kZero));
+            new SwerveDriveSimulation(SwerveDriveConfig, new Pose2d(2.0, 2.0, Rotation2d.kZero));
         SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
         drive =
             new Drive(
@@ -118,11 +118,8 @@ public class RobotContainer {
                 new ModuleIOSim(driveSimulation.getModules()[1]),
                 new ModuleIOSim(driveSimulation.getModules()[2]),
                 new ModuleIOSim(driveSimulation.getModules()[3]),
-                (pose) -> {
-                  driveSimulation.setSimulationWorldPose(pose);
-                  driveSimulation.setRobotSpeeds(new ChassisSpeeds());
-                });
-        drive.setPose(driveSimulation.getSimulatedDriveTrainPose());
+                driveSimulation::setSimulationWorldPose);
+
         createShooter();
         vision =
             new Vision(
