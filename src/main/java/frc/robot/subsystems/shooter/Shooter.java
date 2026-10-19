@@ -78,12 +78,12 @@ public class Shooter extends SubsystemBase {
         PersistMode.kNoPersistParameters);
 
     topFeeder.configure(
-        ShooterConstants.FEEDERMOTORCONFIG.inverted(true),
+        ShooterConstants.FEEDERMOTORCONFIG.inverted(ShooterConstants.REVERSETOPFEEDER),
         ResetMode.kResetSafeParameters,
         PersistMode.kNoPersistParameters);
 
     bottomFeeder.configure(
-        ShooterConstants.FEEDERMOTORCONFIG.inverted(false),
+        ShooterConstants.FEEDERMOTORCONFIG.inverted(ShooterConstants.REVERSEBOTTOMFEEDER),
         ResetMode.kResetSafeParameters,
         PersistMode.kNoPersistParameters);
 
@@ -111,7 +111,7 @@ public class Shooter extends SubsystemBase {
   public void setFlywheelRPM(double rpm) {
     targetRPM = rpm;
     System.out.println(flyMotor1CLC);
-    flyMotor1CLC.setSetpoint(rpm * ShooterConstants.REVERSEFLYWHEEL, ControlType.kVelocity);
+    flyMotor1CLC.setSetpoint(rpm, ControlType.kVelocity);
   }
 
   public void stopFlywheel() {
@@ -130,6 +130,7 @@ public class Shooter extends SubsystemBase {
   }
 
   // Feed Functions
+
   public void setTopFeed(double rpm) {
     topFeederCLC.setSetpoint(rpm, ControlType.kVelocity);
   }
@@ -139,9 +140,9 @@ public class Shooter extends SubsystemBase {
   }
 
   public void startFeed() {
-    if (canShoot()) {
+    if (canShoot() || true) { // fix me
       setTopFeed(feedSetpointRPM);
-      setBottomFeed(feedBSetpointRPM);
+      setBottomFeed(feedBSetpointRPM);// verify this again had to unreverse bottome feeder
     }
   }
 
@@ -150,6 +151,14 @@ public class Shooter extends SubsystemBase {
     setBottomFeed(0);
   }
 
+  // Utility Functions
+
+  public double getShootRPM(double distance) {
+    // Returns RPM from distance to target in meters
+    return ShooterConstants.shooterMap.get(distance);
+  }
+
+  // if this isnt working then it might be better to not use it for now
   public boolean canShoot() {
     // Checks if flywheel speed is within acceptable range of target speed (200 rpm)
     Boolean flywheelReady = Math.abs(flyMotor1Encoder.getVelocity() - targetRPM) <= 200;

@@ -1,10 +1,19 @@
-# 2026 Stay Classy Classic
 
-## Innovation Project Software Members
+# Innovation Project Software Members
 
-### Innovation Project A/B
-\<members>
-### Innovation Project C
-\<memebers>
-### Innovation Project D
-\<members>
+## Innovation Project A/B
+
+### Shooter
+- Ryan
+- Issac
+### Chassis
+- Amogh
+- Ethan
+### Intake
+- Hansol
+- Kirshna
+### Vision
+- Krish
+- Aiden
+- Jason
+- Yikang

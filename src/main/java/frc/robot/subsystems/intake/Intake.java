@@ -1,101 +1,152 @@
 package frc.robot.subsystems.intake;
 
+import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkLimitSwitch;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
 
 public class Intake extends SubsystemBase {
-  // Intake motor
-  private SparkFlex intakeBall;
+  // Lower Intake motor
+  private SparkFlex intakeRollers;
   // Agitates hopper
   private SparkFlex hopperMovement;
   // Raises & Lowers intake
-  private SparkMax turnIntake;
+  private SparkMax intakeArm;
+  private SparkLimitSwitch fwdLimitSwitch;
+  private SparkLimitSwitch revLimitSwitch;
 
-  private boolean motorIsOn;
+  private SparkClosedLoopController intakeArmCLC;
+  private AbsoluteEncoder intakeArmAbsoluteEncoder;
+
+  private ShuffleboardTab intakeTab;
+  private GenericEntry fwdLimitSwitchEntry;
+  private GenericEntry revLimitSwitchEntry;
+  private GenericEntry turnEncoderPositionEntry;
 
   public Intake() {
-    intakeBall = new SparkFlex(IntakeConstants.CANIDINTAKEROLLERS, MotorType.kBrushless);
+    intakeRollers = new SparkFlex(IntakeConstants.CANIDINTAKEROLLERS, MotorType.kBrushless);
     hopperMovement = new SparkFlex(IntakeConstants.CANIDHOPPER, MotorType.kBrushless);
-    turnIntake = new SparkMax(IntakeConstants.CANIDINTAKEARM, MotorType.kBrushless);
+    intakeArm = new SparkMax(IntakeConstants.CANIDINTAKEARM, MotorType.kBrushless);
 
-    motorIsOn = false;
+    // SoftLimitConfig softLimitConfig = new SoftLimitConfig();
+    // softLimitConfig.forwardSoftLimitEnabled(true); //enables the forward soft limit
+    // softLimitConfig.reverseSoftLimitEnabled(true); //enables the reverse soft limit
+    // softLimitConfig.forwardSoftLimit(0);
+    // softLimitConfig.reverseSoftLimit(topSoftLimit);
 
-    intakeBall.configure(
-        IntakeConstants.intakeBallConfig,
+    revLimitSwitch = intakeArm.getReverseLimitSwitch(); // arm up pos
+    fwdLimitSwitch = intakeArm.getForwardLimitSwitch(); // arm down pos
+
+    intakeRollers.configure(
+        IntakeConstants.intakeRollersConfig,
         ResetMode.kResetSafeParameters,
         PersistMode.kPersistParameters);
-    turnIntake.configure(
-        IntakeConstants.turnIntakeConfig,
+
+    hopperMovement.configure(
+        IntakeConstants.intakeRollersConfig,
         ResetMode.kResetSafeParameters,
         PersistMode.kPersistParameters);
+
+    intakeArm.configure(
+        IntakeConstants.intakeArmConfig,
+        ResetMode.kResetSafeParameters,
+        PersistMode.kPersistParameters);
+
+    intakeArmCLC = intakeArm.getClosedLoopController();
+    intakeArmAbsoluteEncoder = intakeArm.getAbsoluteEncoder();
+
+    intakeTab = Shuffleboard.getTab("intake");
+    fwdLimitSwitchEntry = intakeTab.add("Foward Limit Switch", false).getEntry();
+    revLimitSwitchEntry = intakeTab.add("Reverse Limit Switch", false).getEntry();
+    turnEncoderPositionEntry =
+        intakeTab.add("Turn Encoder Position", intakeArmAbsoluteEncoder.getPosition()).getEntry();
   }
 
-  public void periodic() {}
+  // Turn Intake Functions
+  // might need to pivot to using velocity setpoints for now
+  public void setIntakeArm(double position) {
+    // retract velocity -600
+    // deploy velocity 200
+    intakeArmCLC.setSetpoint(position, ControlType.kVelocity);
+  }
 
-  public Command runIntakeBall() {
+  public void stopintakeArm() {
+    intakeArmCLC.setSetpoint(0.0, ControlType.kVoltage);
+  }
+
+  public boolean canIntakeArm() {
+    return false;
+  }
+
+  public Command deployIntakeArm() {
     return runOnce(
         () -> {
-          intakeBall.set(0.25);
+          setIntakeArm(Math.PI / 2);
         });
   }
 
-  public Command reverseIntakeBall() {
+  public Command retractIntakeArm() {
     return runOnce(
         () -> {
-          intakeBall.set(-0.25);
+          setIntakeArm(0);
         });
   }
 
-  public Command runTurnIntake() {
+  // Hopper Functions
+
+  public void setHopper(double power) {
+    hopperMovement.set(power);
+  }
+
+  public Command startHopper() {
     return runOnce(
         () -> {
-          turnIntake.set(0.25);
+          setHopper(IntakeConstants.hopperPower);
         });
   }
 
-  public Command stopTurnIntake() {
+  public Command stopHopper() {
     return runOnce(
         () -> {
-          turnIntake.set(0);
+          setHopper(0);
         });
   }
 
-  public Command stopIntakeBall() {
+  // Lower Ball Intake Functions
+  public void setIntake(double power) {
+    intakeRollers.set(power);
+  }
+
+  public Command startIntake() {
     return runOnce(
         () -> {
-          intakeBall.set(0);
+          // startHopper();
+          setIntake(0.75);
         });
   }
 
-  public void setMotorOn(boolean val) {
-    motorIsOn = val;
-  }
-
-  public boolean getMotorOn() {
-    return motorIsOn;
-  }
-
-  public Command setMotorCommandOn(boolean val) {
+  public Command stopIntake() {
     return runOnce(
         () -> {
-          motorIsOn = val;
+          // stopHopper();
+          setIntake(0);
         });
   }
 
-  public Command keepOn() {
-    return runOnce(
-        () -> {
-          if (getMotorOn()) {
-            setMotorOn(false);
-          } else {
-            setMotorOn(true);
-          }
-        });
+  public void periodic() {
+    fwdLimitSwitchEntry.setBoolean(fwdLimitSwitch.isPressed());
+    revLimitSwitchEntry.setBoolean(revLimitSwitch.isPressed());
+    turnEncoderPositionEntry.setDouble(intakeArmAbsoluteEncoder.getPosition());
   }
 }

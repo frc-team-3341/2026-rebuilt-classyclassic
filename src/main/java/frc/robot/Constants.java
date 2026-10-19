@@ -9,6 +9,8 @@ package frc.robot;
 
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.FeedbackSensor;
+import com.revrobotics.spark.config.LimitSwitchConfig.Behavior;
+import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -40,9 +42,58 @@ public final class Constants {
     public static final int CANIDHOPPER = 14;
     public static final int CANIDINTAKEARM = 13;
 
-    public static final SparkFlexConfig intakeBallConfig = new SparkFlexConfig();
+    public static final SparkFlexConfig intakeRollersConfig = new SparkFlexConfig();
     public static final SparkFlexConfig hopperMovementConfig = new SparkFlexConfig();
-    public static final SparkMaxConfig turnIntakeConfig = new SparkMaxConfig();
+    public static final SparkMaxConfig intakeArmConfig = new SparkMaxConfig();
+
+    public static final double kPturn = 0.0001;
+    public static final double kIturn = 0.0;
+    public static final double kDturn = 0.0;
+    public static final double kVturn = 12.0 / 5767;
+    public static final double kCosturn = 1.5;
+    public static final double kCosRationturn = 1.0 / 50;
+
+    public static final double intakeRollersPower = 0.25;
+    public static final double hopperPower = 0.25;
+    public static final double turnMaxAcceleration = 300; // In rpm per second
+    public static final double turnCruiseVelocity =
+        10.0 * 50; // 10 rpm & assumes gear ratio of 50, in rpm
+
+    public static final boolean intakeRollersReverse = true;
+    public static final boolean intakeTurnReverse = false;
+    public static final boolean intakeHopperReverse = false;
+
+    static {
+      intakeArmConfig
+          .closedLoop
+          .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+          .p(kPturn, ClosedLoopSlot.kSlot0)
+          .i(kIturn, ClosedLoopSlot.kSlot0)
+          .d(kDturn, ClosedLoopSlot.kSlot0)
+          .outputRange(-1, 1, ClosedLoopSlot.kSlot0)
+          .feedForward
+          .kV(kVturn, ClosedLoopSlot.kSlot0)
+          .kCos(kCosturn, ClosedLoopSlot.kSlot0)
+          .kCosRatio(kCosRationturn, ClosedLoopSlot.kSlot0);
+
+      intakeArmConfig
+          .closedLoop
+          .maxMotion
+          .allowedProfileError(0.1)
+          .maxAcceleration(turnMaxAcceleration)
+          .cruiseVelocity(turnCruiseVelocity);
+
+      intakeArmConfig
+          .limitSwitch
+          .forwardLimitSwitchType(Type.kNormallyClosed)
+          .forwardLimitSwitchTriggerBehavior(Behavior.kStopMovingMotor)
+          .reverseLimitSwitchType(Type.kNormallyClosed)
+          .reverseLimitSwitchTriggerBehavior(Behavior.kStopMovingMotor);
+
+      intakeArmConfig.inverted(intakeTurnReverse).idleMode(IdleMode.kBrake);
+      intakeRollersConfig.inverted(intakeRollersReverse).idleMode(IdleMode.kCoast);
+      hopperMovementConfig.inverted(intakeHopperReverse).idleMode(IdleMode.kCoast);
+    }
   }
 
   public static final class ShooterConstants {
@@ -76,9 +127,10 @@ public final class Constants {
     // Feeder Configs
     public static final double FEEDERRPM = 500;
 
-    // Reverse Flywheel
-    // 1 = Don't Reverse, -1 = Reverse
-    public static final int REVERSEFLYWHEEL = 1;
+    // Reverse Motors
+    public static final boolean REVERSEFLYWHEEL = false;
+    public static final boolean REVERSEBOTTOMFEEDER = false;
+    public static final boolean REVERSETOPFEEDER = true;
 
     // Flywheel configs
     public static final double BACKUPSHOOTERRPM = 3000;
@@ -106,6 +158,8 @@ public final class Constants {
           .outputRange(-1, 1, ClosedLoopSlot.kSlot0)
           .feedForward
           .kV(kVflywheel, ClosedLoopSlot.kSlot0);
+
+      FLYWHEELMOTORCONFIG.inverted(REVERSEFLYWHEEL);
 
       FOLLOWERMOTORCONFIG.follow(CANIDFLYWHEEL1, true).idleMode(IdleMode.kCoast);
 
