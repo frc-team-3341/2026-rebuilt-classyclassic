@@ -29,10 +29,15 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -41,6 +46,7 @@ import frc.robot.Constants.Mode;
 import frc.robot.util.LocalADStarAK;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -50,8 +56,19 @@ public class Drive extends SubsystemBase {
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
   private final SysIdRoutine sysId;
+  private final Consumer<Pose2d> resetSimulationPose;
+  // private final StructArrayPublisher<SwerveModuleState> desiredStatePublisher;
+  // private final StructArrayPublisher<SwerveModuleState> actualStatePublisher;
+  private final Field2d field = new Field2d();
+  private Pose2d[] activeTrajectory = new Pose2d[] {};
+  private Pose2d trajectorySetpoint = Pose2d.kZero;
   private final Alert gyroDisconnectedAlert =
       new Alert("Disconnected gyro, using kinematics as fallback.", AlertType.kError);
+
+  private final StructArrayPublisher<SwerveModuleState> swerveModuleStatePublisher;
+  private final StructArrayPublisher<SwerveModuleState> swerveModuleSetPointPublisher;
+  private final StructPublisher<ChassisSpeeds> chassisSpeedsPublisher;
+  private final StructPublisher<Pose2d> poseEstimatorPublisher;
 
   private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(moduleTranslations);
   private Rotation2d rawGyroRotation = Rotation2d.kZero;
@@ -71,11 +88,31 @@ public class Drive extends SubsystemBase {
       ModuleIO frModuleIO,
       ModuleIO blModuleIO,
       ModuleIO brModuleIO) {
+    this(gyroIO, flModuleIO, frModuleIO, blModuleIO, brModuleIO, (pose) -> {});
+  }
+
+  public Drive(
+      GyroIO gyroIO,
+      ModuleIO flModuleIO,
+      ModuleIO frModuleIO,
+      ModuleIO blModuleIO,
+      ModuleIO brModuleIO,
+      Consumer<Pose2d> resetSimulationPose) {
     this.gyroIO = gyroIO;
+    this.resetSimulationPose = resetSimulationPose;
     modules[0] = new Module(flModuleIO, 0);
     modules[1] = new Module(frModuleIO, 1);
     modules[2] = new Module(blModuleIO, 2);
     modules[3] = new Module(brModuleIO, 3);
+    // desiredStatePublisher =
+    //     NetworkTableInstance.getDefault()
+    //         .getStructArrayTopic("/AdvantageKit/SwerveStates_Desired", SwerveModuleState.struct)
+    //         .publish();
+    // actualStatePublisher =
+    //     NetworkTableInstance.getDefault()
+    //         .getStructArrayTopic("/AdvantageKit/SwerveStates_Actual", SwerveModuleState.struct)
+    //         .publish();
+    SmartDashboard.putData("Field", field);
 
     // Usage reporting for swerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_AdvantageKit);
@@ -97,11 +134,13 @@ public class Drive extends SubsystemBase {
     Pathfinding.setPathfinder(new LocalADStarAK());
     PathPlannerLogging.setLogActivePathCallback(
         (activePath) -> {
-          Logger.recordOutput("Odometry/Trajectory", activePath.toArray(new Pose2d[0]));
+          activeTrajectory = activePath.toArray(new Pose2d[0]);
+          field.getObject("Trajectory").setPoses(activePath);
         });
     PathPlannerLogging.setLogTargetPoseCallback(
         (targetPose) -> {
-          Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
+          trajectorySetpoint = targetPose;
+          field.getObject("Trajectory Setpoint").setPose(targetPose);
         });
 
     // Configure SysId
@@ -114,6 +153,23 @@ public class Drive extends SubsystemBase {
                 (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+
+    swerveModuleStatePublisher =
+        NetworkTableInstance.getDefault()
+            .getStructArrayTopic("/AdvantageKit/SwerveModuleStates", SwerveModuleState.struct)
+            .publish();
+    swerveModuleSetPointPublisher =
+        NetworkTableInstance.getDefault()
+            .getStructArrayTopic("/AdvantageKit/SwerveModuleSetPoints", SwerveModuleState.struct)
+            .publish();
+    chassisSpeedsPublisher =
+        NetworkTableInstance.getDefault()
+            .getStructTopic("/AdvantageKit/ChassisSpeeds", ChassisSpeeds.struct)
+            .publish();
+    poseEstimatorPublisher =
+        NetworkTableInstance.getDefault()
+            .getStructTopic("/AdvantageKit/EstimatedPose", Pose2d.struct)
+            .publish();
   }
 
   @Override
@@ -125,6 +181,7 @@ public class Drive extends SubsystemBase {
       module.periodic();
     }
     odometryLock.unlock();
+    // actualStatePublisher.set(getModuleStates());
 
     // Stop moving when disabled
     if (DriverStation.isDisabled()) {
@@ -137,6 +194,7 @@ public class Drive extends SubsystemBase {
     if (DriverStation.isDisabled()) {
       Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
       Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
+      // desiredStatePublisher.set(new SwerveModuleState[] {});
     }
 
     // Update odometry
@@ -169,10 +227,17 @@ public class Drive extends SubsystemBase {
 
       // Apply update
       poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
+      poseEstimatorPublisher.set(poseEstimator.getEstimatedPosition());
     }
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
+    Logger.recordOutput("Odometry/Trajectory", activeTrajectory);
+    Logger.recordOutput("Odometry/TrajectorySetpoint", trajectorySetpoint);
+    field.setRobotPose(getPose());
+
+    swerveModuleStatePublisher.set(this.getModuleStates());
+    chassisSpeedsPublisher.set(this.getChassisSpeeds());
   }
 
   /**
@@ -194,13 +259,16 @@ public class Drive extends SubsystemBase {
     for (int i = 0; i < 4; i++) {
       modules[i].runSetpoint(setpointStates[i]);
     }
+    // desiredStatePublisher.set(setpointStates);
 
     // Log optimized setpoints (runSetpoint mutates each state)
     Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
+    swerveModuleSetPointPublisher.set(setpointStates);
   }
 
   /** Runs the drive in a straight line with the specified drive output. */
   public void runCharacterization(double output) {
+    // desiredStatePublisher.set(new SwerveModuleState[] {});
     for (int i = 0; i < 4; i++) {
       modules[i].runCharacterization(output);
     }
@@ -292,7 +360,14 @@ public class Drive extends SubsystemBase {
 
   /** Resets the current odometry pose. */
   public void setPose(Pose2d pose) {
+    resetSimulationPose.accept(pose);
     poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
+  }
+
+  /** Displays the physics pose alongside the estimated pose. */
+  public void setSimulationPose(Pose2d pose) {
+    field.getObject("Simulation").setPose(pose);
+    Logger.recordOutput("Simulation/Robot", pose);
   }
 
   /** Adds a new timestamped vision measurement. */

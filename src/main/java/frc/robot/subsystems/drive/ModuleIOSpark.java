@@ -22,10 +22,9 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.AbsoluteEncoderConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -33,8 +32,8 @@ import java.util.Queue;
 import java.util.function.DoubleSupplier;
 
 /**
- * Module IO implementation for Spark Flex drive motor controller, Spark Max turn motor controller,
- * and duty cycle absolute encoder.
+ * Module IO implementation for Spark Flex drive and turn motor controllers, and duty cycle absolute
+ * encoder.
  */
 public class ModuleIOSpark implements ModuleIO {
   private final Rotation2d zeroRotation;
@@ -61,6 +60,7 @@ public class ModuleIOSpark implements ModuleIO {
       new Debouncer(0.5, Debouncer.DebounceType.kFalling);
 
   public ModuleIOSpark(int module) {
+
     zeroRotation =
         switch (module) {
           case 0 -> frontLeftZeroRotation;
@@ -80,7 +80,7 @@ public class ModuleIOSpark implements ModuleIO {
             },
             MotorType.kBrushless);
     turnSpark =
-        new SparkMax(
+        new SparkFlex(
             switch (module) {
               case 0 -> frontLeftTurnCanId;
               case 1 -> frontRightTurnCanId;
@@ -89,6 +89,7 @@ public class ModuleIOSpark implements ModuleIO {
               default -> 0;
             },
             MotorType.kBrushless);
+
     driveEncoder = driveSpark.getEncoder();
     turnEncoder = turnSpark.getAbsoluteEncoder();
     driveController = driveSpark.getClosedLoopController();
@@ -97,6 +98,14 @@ public class ModuleIOSpark implements ModuleIO {
     // Configure drive motor
     var driveConfig = new SparkFlexConfig();
     driveConfig
+        .inverted(
+            switch (module) {
+              case 0 -> true; // FL
+              case 1 -> true; // FR
+              case 2 -> true; // BL
+              case 3 -> false; // BR
+              default -> false;
+            })
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(driveMotorCurrentLimit)
         .voltageCompensation(12.0);
@@ -128,18 +137,19 @@ public class ModuleIOSpark implements ModuleIO {
     tryUntilOk(driveSpark, 5, () -> driveEncoder.setPosition(0.0));
 
     // Configure turn motor
-    var turnConfig = new SparkMaxConfig();
+    var turnConfig = new SparkFlexConfig();
     turnConfig
-        .inverted(turnInverted)
+        .inverted(true)
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(turnMotorCurrentLimit)
         .voltageCompensation(12.0);
     turnConfig
         .absoluteEncoder
-        .inverted(turnEncoderInverted)
+        .inverted(false)
         .positionConversionFactor(turnEncoderPositionFactor)
         .velocityConversionFactor(turnEncoderVelocityFactor)
-        .averageDepth(2);
+        .averageDepth(2)
+        .apply(AbsoluteEncoderConfig.Presets.REV_ThroughBoreEncoderV2);
     turnConfig
         .closedLoop
         .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)

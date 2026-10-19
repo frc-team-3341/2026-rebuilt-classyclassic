@@ -7,6 +7,10 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.*;
+import static frc.robot.subsystems.drive.DriveConstants.*;
+import static frc.robot.subsystems.vision.VisionConstants.*;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -21,11 +25,21 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX;
+import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.COTS;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
+import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -38,6 +52,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private Shooter shooter;
+  private SwerveDriveSimulation driveSimulation;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -48,7 +63,11 @@ public class RobotContainer {
   // Intake
   private Intake robotIntake;
 
-  /** Th8e container for the robot. Contains subsystems, OI devices, and commands. */
+  @SuppressWarnings("unused")
+  private final Vision vision;
+
+  // private final GyroIOSim gyroIO = new GyroIOSim(null);
+  /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     switch (Constants.currentMode) {
       case REAL:
@@ -62,19 +81,55 @@ public class RobotContainer {
                 new ModuleIOSpark(3));
         createIntake();
         createShooter();
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVision(camera0Name, robotToCamera0),
+                new VisionIOPhotonVision(camera1Name, robotToCamera1));
+        // new VisionIOPhotonVisionSim(camera2Name, robotToCamera2, drive::getPose)); // once 3rd
+        // camera is added
         break;
 
       case SIM:
         // Sim robot, instantiate physics sim IO implementations
+        var SwerveDriveConfig =
+            DriveTrainSimulationConfig.Default()
+                .withRobotMass(Kilograms.of(robotMassKg))
+                .withBumperSize(Meters.of(bumperLengthMeters), Meters.of(bumperWidthMeters))
+                .withCustomModuleTranslations(moduleTranslations)
+                .withGyro(COTS.ofNav2X())
+                .withSwerveModule(
+                    new SwerveModuleSimulationConfig(
+                        driveGearbox,
+                        turnGearbox,
+                        driveMotorReduction,
+                        turnMotorReduction,
+                        Volts.of(driveSimKs),
+                        Volts.of(turnSimFrictionVolts),
+                        Meters.of(wheelRadiusMeters),
+                        KilogramSquareMeters.of(turnSimMOI),
+                        wheelCOF));
+
+        driveSimulation =
+            new SwerveDriveSimulation(SwerveDriveConfig, new Pose2d(2.0, 2.0, Rotation2d.kZero));
+        SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
         drive =
             new Drive(
-                new GyroIO() {},
-                new ModuleIOSim(),
-                new ModuleIOSim(),
-                new ModuleIOSim(),
-                new ModuleIOSim());
+                new GyroIOSim(driveSimulation.getGyroSimulation()),
+                new ModuleIOSim(driveSimulation.getModules()[0]),
+                new ModuleIOSim(driveSimulation.getModules()[1]),
+                new ModuleIOSim(driveSimulation.getModules()[2]),
+                new ModuleIOSim(driveSimulation.getModules()[3]),
+                driveSimulation::setSimulationWorldPose);
+
         createShooter();
         createIntake();
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
+                new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
+                // new VisionIOPhotonVisionSim(camera2Name, robotToCamera2, drive::getPose));
         break;
 
       default:
@@ -88,6 +143,12 @@ public class RobotContainer {
                 new ModuleIO() {});
         createIntake();
         createShooter();
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIO() {},
+                new VisionIO() {},
+                new VisionIO() {});
         break;
     }
 
@@ -112,6 +173,8 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+
+    // vision = new Vision(drive::addVisionMeasurement);
   }
 
   /**
@@ -122,16 +185,14 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     // Default command, normal field-relative drive
-    /*
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
             () -> -controller.getLeftY(),
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
-    */
 
-    // Reset gyro to 0° when B button is pressed
+    // Reset gyro to 0° when X button is pressed
     controller
         .x()
         .onTrue(
@@ -141,8 +202,8 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));
-    // controller.x().onTrue(Commands.runOnce(() -> AutoCommands.HubCentric(drive)));
 
+    // controller.x().onTrue(Commands.runOnce(() -> AutoCommands.HubCentric(drive)));
     // below line to be replaced with flywheel spin function later
     // controller.a().onTrue(Commands.runOnce(() -> shooter.newPSetpoint(0.0), shooter));
   }
@@ -154,6 +215,13 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
+  }
+
+  public void simulationPeriodic() {
+    if (driveSimulation != null) {
+      SimulatedArena.getInstance().simulationPeriodic();
+      drive.setSimulationPose(driveSimulation.getSimulatedDriveTrainPose());
+    }
   }
 
   public void createShooter() {
@@ -169,13 +237,17 @@ public class RobotContainer {
     flywheelTrigger.debounce(1);
     flywheelTrigger.toggleOnTrue(Commands.runOnce(() -> shooter.shoot()));
     flywheelTrigger.toggleOnFalse(Commands.runOnce(() -> shooter.stopFlywheel()));
+
+    // Trigger feedBTrigger = controller.leftTrigger();
+    // feedBTrigger.debounce(1);
+    // feedBTrigger.toggleOnTrue(Commands.runOnce(() -> shooter.startFeed()));
   }
 
   public void createIntake() {
     robotIntake = new Intake();
 
     // Bottom Feed Trigger
-    Trigger bottomFeedTrigger = controller.rightTrigger();
+    Trigger bottomFeedTrigger = controller.leftTrigger();
     bottomFeedTrigger.onTrue(robotIntake.startIntake()).onFalse(robotIntake.stopIntake());
 
     // Hopper Feed trigger

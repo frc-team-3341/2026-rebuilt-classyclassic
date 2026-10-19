@@ -140,9 +140,9 @@ public class Shooter extends SubsystemBase {
   }
 
   public void startFeed() {
-    if (canShoot()) {
+    if (canShoot() || true) { // fix me
       setTopFeed(feedSetpointRPM);
-      setBottomFeed(feedBSetpointRPM);
+      setBottomFeed(feedBSetpointRPM);// verify this again had to unreverse bottome feeder
     }
   }
 
@@ -158,6 +158,7 @@ public class Shooter extends SubsystemBase {
     return ShooterConstants.shooterMap.get(distance);
   }
 
+  // if this isnt working then it might be better to not use it for now
   public boolean canShoot() {
     // Checks if flywheel speed is within acceptable range of target speed (200 rpm)
     Boolean flywheelReady = Math.abs(flyMotor1Encoder.getVelocity() - targetRPM) <= 200;
