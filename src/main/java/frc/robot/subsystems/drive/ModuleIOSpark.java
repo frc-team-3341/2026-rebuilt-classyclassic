@@ -61,8 +61,6 @@ public class ModuleIOSpark implements ModuleIO {
 
   public ModuleIOSpark(int module) {
 
-    boolean drivingMotorOnBottom = false;
-    boolean turningMotorOnBottom = false;
     zeroRotation =
         switch (module) {
           case 0 -> frontLeftZeroRotation;
@@ -91,12 +89,7 @@ public class ModuleIOSpark implements ModuleIO {
               default -> 0;
             },
             MotorType.kBrushless);
-    switch (module) {
-      case 1:
-        drivingMotorOnBottom = true;
-      case 3:
-        drivingMotorOnBottom = true;
-    }
+
     driveEncoder = driveSpark.getEncoder();
     turnEncoder = turnSpark.getAbsoluteEncoder();
     driveController = driveSpark.getClosedLoopController();
@@ -105,6 +98,14 @@ public class ModuleIOSpark implements ModuleIO {
     // Configure drive motor
     var driveConfig = new SparkFlexConfig();
     driveConfig
+        .inverted(
+            switch (module) {
+              case 0 -> true; // FL
+              case 1 -> true; // FR
+              case 2 -> true; // BL
+              case 3 -> false; // BR
+              default -> false;
+            })
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(driveMotorCurrentLimit)
         .voltageCompensation(12.0);
@@ -138,13 +139,13 @@ public class ModuleIOSpark implements ModuleIO {
     // Configure turn motor
     var turnConfig = new SparkFlexConfig();
     turnConfig
-        .inverted(turnInverted)
+        .inverted(true)
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(turnMotorCurrentLimit)
         .voltageCompensation(12.0);
     turnConfig
         .absoluteEncoder
-        .inverted(turnEncoderInverted)
+        .inverted(false)
         .positionConversionFactor(turnEncoderPositionFactor)
         .velocityConversionFactor(turnEncoderVelocityFactor)
         .averageDepth(2)
