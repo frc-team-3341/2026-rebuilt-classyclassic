@@ -33,6 +33,10 @@ public class Intake extends SubsystemBase {
   private GenericEntry fwdLimitSwitchEntry;
   private GenericEntry revLimitSwitchEntry;
   private GenericEntry turnEncoderPositionEntry;
+  private GenericEntry intakeArmRPMEntry;
+
+  // hopper toggle "debounce"
+  private boolean hopperToggle;
 
   public Intake() {
     intakeRollers = new SparkFlex(IntakeConstants.CANIDINTAKEROLLERS, MotorType.kBrushless);
@@ -54,7 +58,7 @@ public class Intake extends SubsystemBase {
         PersistMode.kPersistParameters);
 
     hopperMovement.configure(
-        IntakeConstants.intakeRollersConfig,
+        IntakeConstants.hopperMovementConfig,
         ResetMode.kResetSafeParameters,
         PersistMode.kPersistParameters);
 
@@ -71,6 +75,7 @@ public class Intake extends SubsystemBase {
     revLimitSwitchEntry = intakeTab.add("Reverse Limit Switch", false).getEntry();
     turnEncoderPositionEntry =
         intakeTab.add("Turn Encoder Position", intakeArmAbsoluteEncoder.getPosition()).getEntry();
+    intakeArmRPMEntry = intakeTab.add("intakeArmMaxRPM", 300).getEntry();
   }
 
   // Turn Intake Functions
@@ -109,6 +114,22 @@ public class Intake extends SubsystemBase {
     hopperMovement.set(power);
   }
 
+  public Command toggleHopper() {
+    if (hopperToggle) {
+      hopperToggle = false;
+      return runOnce(
+          () -> {
+            stopHopper();
+          });
+    } else {
+      hopperToggle = true;
+      return runOnce(
+          () -> {
+            startHopper();
+          });
+    }
+  }
+
   public Command startHopper() {
     return runOnce(
         () -> {
@@ -120,6 +141,13 @@ public class Intake extends SubsystemBase {
     return runOnce(
         () -> {
           setHopper(0);
+        });
+  }
+
+  public Command reverseHopper() {
+    return runOnce(
+        () -> {
+          setHopper(-IntakeConstants.hopperPower);
         });
   }
 

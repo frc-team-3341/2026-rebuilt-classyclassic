@@ -132,7 +132,7 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
-                // new VisionIOPhotonVisionSim(camera2Name, robotToCamera2, drive::getPose));
+        // new VisionIOPhotonVisionSim(camera2Name, robotToCamera2, drive::getPose));
         break;
 
       default:
@@ -191,9 +191,9 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+            () -> controller.getLeftY(),
+            () -> controller.getLeftX(),
+            () -> controller.getRightX()));
 
     // Reset gyro to 0° when X button is pressed
     controller
@@ -258,6 +258,18 @@ public class RobotContainer {
     hopperTrigger.onTrue(robotIntake.startHopper()).onFalse(robotIntake.stopHopper());
 
     Trigger turnTrigger = controller.a();
-    turnTrigger.onTrue(robotIntake.startHopper());
+    turnTrigger
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  robotIntake.reverseHopper();
+                  shooter.reverseFeed();
+                }))
+        .onFalse(
+            Commands.runOnce(
+                () -> {
+                  robotIntake.stopHopper();
+                  shooter.stopFeed();
+                }));
   }
 }

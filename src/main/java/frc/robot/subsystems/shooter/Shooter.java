@@ -142,8 +142,13 @@ public class Shooter extends SubsystemBase {
   public void startFeed() {
     if (canShoot() || true) { // fix me
       setTopFeed(feedSetpointRPM);
-      setBottomFeed(feedBSetpointRPM);// verify this again had to unreverse bottome feeder
+      setBottomFeed(feedBSetpointRPM); // verify this again had to unreverse bottome feeder
     }
+  }
+
+  public void reverseFeed() {
+    setTopFeed(-feedSetpointRPM);
+    setBottomFeed(-feedBSetpointRPM);
   }
 
   public void stopFeed() {
