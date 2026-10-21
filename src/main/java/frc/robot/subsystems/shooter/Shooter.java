@@ -167,12 +167,14 @@ public class Shooter extends SubsystemBase {
   public boolean canShoot() {
     // Checks if flywheel speed is within acceptable range of target speed (200 rpm)
     Boolean flywheelReady = Math.abs(flyMotor1Encoder.getVelocity() - targetRPM) <= 200;
+    // Checks if flywheel is spinning
+    Boolean flywheelSpinning = targetRPM > 10;
 
     // Check if all conditions are true
-    if (flywheelReady) {
+    if (flywheelReady && flywheelSpinning) {
       return true;
     }
-    return true;
+    return false;
   }
 
   @Override

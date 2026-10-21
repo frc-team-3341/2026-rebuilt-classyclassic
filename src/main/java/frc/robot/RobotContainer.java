@@ -231,15 +231,13 @@ public class RobotContainer {
     shooter = new Shooter();
     // Feed Function
     Trigger feedTrigger = controller.rightTrigger();
-    feedTrigger.debounce(1);
     feedTrigger.onTrue(Commands.runOnce(() -> shooter.startFeed()));
     feedTrigger.onFalse(Commands.runOnce(() -> shooter.stopFeed()));
 
     // Start Flywheel
     Trigger flywheelTrigger = controller.rightBumper();
-    flywheelTrigger.debounce(1);
-    flywheelTrigger.toggleOnTrue(Commands.runOnce(() -> shooter.shoot()));
-    flywheelTrigger.toggleOnFalse(Commands.runOnce(() -> shooter.stopFlywheel()));
+    flywheelTrigger.onTrue(Commands.runOnce(() -> shooter.shoot()));
+    flywheelTrigger.onFalse(Commands.runOnce(() -> shooter.stopFlywheel()));
 
     // Trigger feedBTrigger = controller.leftTrigger();
     // feedBTrigger.debounce(1);
@@ -257,22 +255,6 @@ public class RobotContainer {
     Trigger hopperTrigger = controller.b();
     hopperTrigger.onTrue(robotIntake.startHopper()).onFalse(robotIntake.stopHopper());
 
-    /*
-    Trigger reverseTrigger = controller.a();
-    reverseTrigger
-        .onTrue(
-            Commands.runOnce(
-                () -> {
-                  robotIntake.reverseHopper();
-                  shooter.reverseFeed();
-                }))
-        .onFalse(
-            Commands.runOnce(
-                () -> {
-                  robotIntake.stopHopper();
-                  shooter.stopFeed();
-                }));
-    */
     Trigger armTrigger = controller.y();
   }
 }
