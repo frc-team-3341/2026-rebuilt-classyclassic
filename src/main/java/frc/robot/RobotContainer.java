@@ -257,8 +257,9 @@ public class RobotContainer {
     Trigger hopperTrigger = controller.b();
     hopperTrigger.onTrue(robotIntake.startHopper()).onFalse(robotIntake.stopHopper());
 
-    Trigger turnTrigger = controller.a();
-    turnTrigger
+    /*
+    Trigger reverseTrigger = controller.a();
+    reverseTrigger
         .onTrue(
             Commands.runOnce(
                 () -> {
@@ -271,5 +272,7 @@ public class RobotContainer {
                   robotIntake.stopHopper();
                   shooter.stopFeed();
                 }));
+    */
+    Trigger armTrigger = controller.y();
   }
 }

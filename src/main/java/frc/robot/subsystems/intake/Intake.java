@@ -29,11 +29,15 @@ public class Intake extends SubsystemBase {
   private SparkClosedLoopController intakeArmCLC;
   private AbsoluteEncoder intakeArmAbsoluteEncoder;
 
+  private SparkClosedLoopController intakeRollersCLC;
+  private SparkClosedLoopController hopperRollersCLC;
+
   private ShuffleboardTab intakeTab;
   private GenericEntry fwdLimitSwitchEntry;
   private GenericEntry revLimitSwitchEntry;
   private GenericEntry turnEncoderPositionEntry;
-  private GenericEntry intakeArmRPMEntry;
+  private GenericEntry intakeRollersRPMEntry;
+  private GenericEntry hopperRollersRPMEntry;
 
   // hopper toggle "debounce"
   private boolean hopperToggle;
@@ -70,12 +74,16 @@ public class Intake extends SubsystemBase {
     intakeArmCLC = intakeArm.getClosedLoopController();
     intakeArmAbsoluteEncoder = intakeArm.getAbsoluteEncoder();
 
+    intakeRollersCLC = intakeRollers.getClosedLoopController();
+    hopperRollersCLC = hopperMovement.getClosedLoopController();
+
     intakeTab = Shuffleboard.getTab("intake");
     fwdLimitSwitchEntry = intakeTab.add("Foward Limit Switch", false).getEntry();
     revLimitSwitchEntry = intakeTab.add("Reverse Limit Switch", false).getEntry();
     turnEncoderPositionEntry =
         intakeTab.add("Turn Encoder Position", intakeArmAbsoluteEncoder.getPosition()).getEntry();
-    intakeArmRPMEntry = intakeTab.add("intakeArmMaxRPM", 300).getEntry();
+    intakeRollersRPMEntry = intakeTab.add("intakeRollersRPM", 1500).getEntry();
+    hopperRollersRPMEntry = intakeTab.add("hopperRollersRPM", 1500).getEntry();
   }
 
   // Turn Intake Functions
@@ -83,11 +91,11 @@ public class Intake extends SubsystemBase {
   public void setIntakeArm(double position) {
     // retract velocity -600
     // deploy velocity 200
-    intakeArmCLC.setSetpoint(position, ControlType.kVelocity);
+    intakeArmCLC.setSetpoint(position, ControlType.kPosition);
   }
 
   public void stopintakeArm() {
-    intakeArmCLC.setSetpoint(0.0, ControlType.kVoltage);
+    intakeArmCLC.setSetpoint(0.0, ControlType.kVelocity);
   }
 
   public boolean canIntakeArm() {
@@ -97,21 +105,21 @@ public class Intake extends SubsystemBase {
   public Command deployIntakeArm() {
     return runOnce(
         () -> {
-          setIntakeArm(Math.PI / 2);
+          setIntakeArm(0.228);
         });
   }
 
   public Command retractIntakeArm() {
     return runOnce(
         () -> {
-          setIntakeArm(0);
+          setIntakeArm(0.56);
         });
   }
 
   // Hopper Functions
 
-  public void setHopper(double power) {
-    hopperMovement.set(power);
+  public void setHopper(double rpm) {
+    hopperRollersCLC.setSetpoint(rpm, ControlType.kVelocity);
   }
 
   public Command toggleHopper() {
@@ -133,7 +141,7 @@ public class Intake extends SubsystemBase {
   public Command startHopper() {
     return runOnce(
         () -> {
-          setHopper(IntakeConstants.hopperPower);
+          setHopper(hopperRollersRPMEntry.getDouble(1500));
         });
   }
 
@@ -147,20 +155,21 @@ public class Intake extends SubsystemBase {
   public Command reverseHopper() {
     return runOnce(
         () -> {
-          setHopper(-IntakeConstants.hopperPower);
+          double test = intakeRollersRPMEntry.getDouble(1500);
+          setHopper(-test);
         });
   }
 
   // Lower Ball Intake Functions
-  public void setIntake(double power) {
-    intakeRollers.set(power);
+  public void setIntake(double rpm) {
+    intakeRollersCLC.setSetpoint(rpm, ControlType.kVelocity);
   }
 
   public Command startIntake() {
     return runOnce(
         () -> {
           // startHopper();
-          setIntake(0.75);
+          setIntake(intakeRollersRPMEntry.getDouble(1500));
         });
   }
 

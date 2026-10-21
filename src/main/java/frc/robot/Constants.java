@@ -90,6 +90,26 @@ public final class Constants {
           .reverseLimitSwitchType(Type.kNormallyClosed)
           .reverseLimitSwitchTriggerBehavior(Behavior.kStopMovingMotor);
 
+      hopperMovementConfig
+          .closedLoop
+          .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+          .p(0.0001, ClosedLoopSlot.kSlot0)
+          .i(0.00, ClosedLoopSlot.kSlot0)
+          .d(0.00, ClosedLoopSlot.kSlot0)
+          .outputRange(-1, 1, ClosedLoopSlot.kSlot0)
+          .feedForward
+          .kV(12.0 / 5767, ClosedLoopSlot.kSlot0);
+
+      intakeRollersConfig
+          .closedLoop
+          .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+          .p(0.0001, ClosedLoopSlot.kSlot0)
+          .i(0.00, ClosedLoopSlot.kSlot0)
+          .d(0.00, ClosedLoopSlot.kSlot0)
+          .outputRange(-1, 1, ClosedLoopSlot.kSlot0)
+          .feedForward
+          .kV(12.0 / 5767, ClosedLoopSlot.kSlot0);
+
       intakeArmConfig.inverted(intakeTurnReverse).idleMode(IdleMode.kBrake);
       intakeRollersConfig.inverted(intakeRollersReverse).idleMode(IdleMode.kCoast);
       hopperMovementConfig.inverted(intakeHopperReverse).idleMode(IdleMode.kCoast);
