@@ -51,11 +51,12 @@ public final class Constants {
     public static final double kIturn = 0.0;
     public static final double kDturn = 0.0;
     public static final double kVturn = 12.0 / 5767;
-    public static final double kGturn = -0.5;
-    
+    public static final double kGturn = 0.5;
 
     public static final double intakeRollersPower = 0.25;
     public static final double hopperPower = 0.25;
+    public static final double turnMaxAcceleration = 300; // In rpm per second
+    public static final double turnCruiseVelocity = 10.0 * 50; // 10 rpm & assumes gear ratio of 50, in rpm
 
     public static final boolean intakeRollersReverse = true;
     public static final boolean intakeTurnReverse = false;

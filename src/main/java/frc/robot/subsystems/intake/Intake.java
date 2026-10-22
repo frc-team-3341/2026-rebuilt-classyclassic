@@ -74,8 +74,15 @@ public class Intake extends SubsystemBase {
 
     intakeRollersCLC = intakeRollers.getClosedLoopController();
     hopperRollersCLC = hopperMovement.getClosedLoopController();
+    // Arbitrary please change
+    if (intakeArmAbsoluteEncoder.getPosition() > 0.4) {
+      armDeployed = false;
+    } else {
+      armDeployed = true;
+    }
 
     intakeTab = Shuffleboard.getTab("intake");
+    armDeployedEntry = intakeTab.add("Arm Deployed", false).getEntry();
     fwdLimitSwitchEntry = intakeTab.add("Foward Limit Switch", false).getEntry();
     revLimitSwitchEntry = intakeTab.add("Reverse Limit Switch", false).getEntry();
     turnEncoderPositionEntry = intakeTab.add("Turn Encoder Position", intakeArmAbsoluteEncoder.getPosition()).getEntry();
@@ -198,8 +205,8 @@ public class Intake extends SubsystemBase {
   }
 
   public void periodic() {
-    if (intakeArmAbsoluteEncoder.getPosition() >= 0.4) {
-        armDeployed = false;
+    if (intakeArmAbsoluteEncoder.getPosition() > 0.4) {
+      armDeployed = false;
     } else {
       armDeployed = true;
     }
