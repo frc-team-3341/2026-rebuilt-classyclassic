@@ -112,6 +112,7 @@ public class RobotContainer {
 
         driveSimulation =
             new SwerveDriveSimulation(SwerveDriveConfig, new Pose2d(2.0, 2.0, Rotation2d.kZero));
+
         SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
         drive =
             new Drive(
@@ -121,7 +122,13 @@ public class RobotContainer {
                 new ModuleIOSim(driveSimulation.getModules()[2]),
                 new ModuleIOSim(driveSimulation.getModules()[3]),
                 driveSimulation::setSimulationWorldPose);
-
+        // drive =
+        //     new Drive(
+        //         new GyroIO() {},
+        //         new ModuleIOSim(),
+        //         new ModuleIOSim(),
+        //         new ModuleIOSim(),
+        //         new ModuleIOSim());
         createShooter();
         createIntake();
         vision =
@@ -129,7 +136,7 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
-                // new VisionIOPhotonVisionSim(camera2Name, robotToCamera2, drive::getPose));
+        // new VisionIOPhotonVisionSim(camera2Name, robotToCamera2, drive::getPose));
         break;
 
       default:
@@ -192,9 +199,9 @@ public class RobotContainer {
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
-    // Reset gyro to 0° when X button is pressed
+    // Reset gyro to 0° when left stick button is pressed
     controller
-        .x()
+        .leftStick()
         .onTrue(
             Commands.runOnce(
                     () ->
@@ -202,6 +209,9 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));
+    
+    // setpu aiming mode here
+    // controller.rightStick()
 
     // controller.x().onTrue(Commands.runOnce(() -> AutoCommands.HubCentric(drive)));
     // below line to be replaced with flywheel spin function later
@@ -226,17 +236,19 @@ public class RobotContainer {
 
   public void createShooter() {
     shooter = new Shooter();
-    // Feed Function
-    Trigger feedTrigger = controller.rightTrigger();
-    feedTrigger.debounce(1);
-    feedTrigger.onTrue(Commands.runOnce(() -> shooter.startFeed()));
-    feedTrigger.onFalse(Commands.runOnce(() -> shooter.stopFeed()));
 
-    // Start Flywheel
-    Trigger flywheelTrigger = controller.rightBumper();
-    flywheelTrigger.debounce(1);
-    flywheelTrigger.toggleOnTrue(Commands.runOnce(() -> shooter.shoot()));
-    flywheelTrigger.toggleOnFalse(Commands.runOnce(() -> shooter.stopFlywheel()));
+    //right trigger -> feed balls to running flywheel
+    controller.rightTrigger()
+    .debounce(1)
+    .onTrue(Commands.runOnce(() -> shooter.startFeed()))
+    .onFalse(Commands.runOnce(() -> shooter.stopFeed()));
+
+    // toggle Flywheel
+    controller.rightBumper()
+    .debounce(1)
+    .toggleOnTrue(Commands.runOnce(() -> shooter.toggleFlywheel()));
+
+    // flywheelTrigger.toggleOnFalse(Commands.runOnce(() -> shooter.stopFlywheel()));
 
     // Trigger feedBTrigger = controller.leftTrigger();
     // feedBTrigger.debounce(1);
@@ -246,15 +258,13 @@ public class RobotContainer {
   public void createIntake() {
     robotIntake = new Intake();
 
-    // Bottom Feed Trigger
-    Trigger bottomFeedTrigger = controller.leftTrigger();
-    bottomFeedTrigger.onTrue(robotIntake.startIntake()).onFalse(robotIntake.stopIntake());
+    controller.y().debounce(1).onTrue(Commands.runOnce(() -> robotIntake.toggleIntakeArm()));
+    // left Trigger intake balls off ground
+    controller.leftTrigger().onTrue(robotIntake.startIntake()).onFalse(robotIntake.stopIntake());
 
     // Hopper Feed trigger
-    Trigger hopperTrigger = controller.b();
-    hopperTrigger.onTrue(robotIntake.startHopper()).onFalse(robotIntake.stopHopper());
+    controller.b().onTrue(robotIntake.startHopper()).onFalse(robotIntake.stopHopper());
 
-    Trigger turnTrigger = controller.a();
-    turnTrigger.onTrue(robotIntake.startHopper());
+    controller.a().onTrue(robotIntake.startHopper());
   }
 }

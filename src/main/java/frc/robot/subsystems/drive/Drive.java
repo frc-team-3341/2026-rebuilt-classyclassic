@@ -22,6 +22,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -44,6 +45,8 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.util.LocalADStarAK;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -57,8 +60,6 @@ public class Drive extends SubsystemBase {
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
   private final SysIdRoutine sysId;
   private final Consumer<Pose2d> resetSimulationPose;
-  // private final StructArrayPublisher<SwerveModuleState> desiredStatePublisher;
-  // private final StructArrayPublisher<SwerveModuleState> actualStatePublisher;
   private final Field2d field = new Field2d();
   private Pose2d[] activeTrajectory = new Pose2d[] {};
   private Pose2d trajectorySetpoint = Pose2d.kZero;
@@ -72,6 +73,7 @@ public class Drive extends SubsystemBase {
 
   private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(moduleTranslations);
   private Rotation2d rawGyroRotation = Rotation2d.kZero;
+  private SwerveModulePosition[] currentModulePositions; // simulation tracking
   private SwerveModulePosition[] lastModulePositions = // For delta tracking
       new SwerveModulePosition[] {
         new SwerveModulePosition(),
@@ -104,16 +106,9 @@ public class Drive extends SubsystemBase {
     modules[1] = new Module(frModuleIO, 1);
     modules[2] = new Module(blModuleIO, 2);
     modules[3] = new Module(brModuleIO, 3);
-    // desiredStatePublisher =
-    //     NetworkTableInstance.getDefault()
-    //         .getStructArrayTopic("/AdvantageKit/SwerveStates_Desired", SwerveModuleState.struct)
-    //         .publish();
-    // actualStatePublisher =
-    //     NetworkTableInstance.getDefault()
-    //         .getStructArrayTopic("/AdvantageKit/SwerveStates_Actual", SwerveModuleState.struct)
-    //         .publish();
-    SmartDashboard.putData("Field", field);
 
+    SmartDashboard.putData("Field", field);
+    currentModulePositions = this.getModulePositions(); // inital pos
     // Usage reporting for swerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_AdvantageKit);
 
@@ -234,11 +229,15 @@ public class Drive extends SubsystemBase {
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
     Logger.recordOutput("Odometry/Trajectory", activeTrajectory);
     Logger.recordOutput("Odometry/TrajectorySetpoint", trajectorySetpoint);
-    field.setRobotPose(getPose());
-
+    field.setRobotPose(this.getPose());
+    currentModulePositions = this.getModulePositions();
+    this.drawModulePoses(currentModulePositions, field, this.getPose());
     swerveModuleStatePublisher.set(this.getModuleStates());
     chassisSpeedsPublisher.set(this.getChassisSpeeds());
   }
+
+  @Override
+  public void simulationPeriodic() {}
 
   /**
    * Runs the drive at the desired velocity.
@@ -368,6 +367,17 @@ public class Drive extends SubsystemBase {
   public void setSimulationPose(Pose2d pose) {
     field.getObject("Simulation").setPose(pose);
     Logger.recordOutput("Simulation/Robot", pose);
+  }
+
+  public void drawModulePoses(SwerveModulePosition[] modulePositions, Field2d field, Pose2d pose) {
+    Pose2d[] poseArr = new Pose2d[4];
+    List<Pose2d> poses = new ArrayList<>();
+    for (int i = 0; i < modulePositions.length; i++) {
+      poses.add(
+          pose.plus(
+              new Transform2d(DriveConstants.moduleTranslations[i], modulePositions[i].angle)));
+    }
+    field.getObject("Modules").setPoses(poses.toArray(poseArr));
   }
 
   /** Adds a new timestamped vision measurement. */

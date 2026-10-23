@@ -25,6 +25,7 @@ public class Intake extends SubsystemBase {
   private SparkMax intakeArm;
   private SparkLimitSwitch fwdLimitSwitch;
   private SparkLimitSwitch revLimitSwitch;
+  private boolean intakeArmState = false; //false for retracted true for deployed
 
   private SparkClosedLoopController intakeArmCLC;
   private AbsoluteEncoder intakeArmAbsoluteEncoder;
@@ -75,10 +76,10 @@ public class Intake extends SubsystemBase {
 
   // Turn Intake Functions
   // might need to pivot to using velocity setpoints for now
-  public void setIntakeArm(double position) {
+  public void setIntakeArm(double velocity) {
     // retract velocity -600
     // deploy velocity 200
-    intakeArmCLC.setSetpoint(position, ControlType.kVelocity);
+    intakeArmCLC.setSetpoint(velocity, ControlType.kVelocity);
   }
 
   public void stopintakeArm() {
@@ -92,17 +93,25 @@ public class Intake extends SubsystemBase {
   public Command deployIntakeArm() {
     return runOnce(
         () -> {
-          setIntakeArm(Math.PI / 2);
+          setIntakeArm(200);
         });
   }
 
   public Command retractIntakeArm() {
     return runOnce(
         () -> {
-          setIntakeArm(0);
+          setIntakeArm(-600);
         });
   }
-
+  
+  public void toggleIntakeArm() {
+    if (intakeArmState) {
+      deployIntakeArm();
+    } else {
+      retractIntakeArm();
+    }
+    intakeArmState = !intakeArmState;
+  }
   // Hopper Functions
 
   public void setHopper(double power) {

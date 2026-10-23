@@ -35,6 +35,7 @@ public class Shooter extends SubsystemBase {
   private int flywheelSetpointRPM;
   private int feedSetpointRPM;
   private int feedBSetpointRPM;
+  private boolean flywheelOn = false;
 
   // Shuffleboard
   ShuffleboardTab shooterTab;
@@ -119,9 +120,18 @@ public class Shooter extends SubsystemBase {
     setFlywheelRPM(targetRPM);
   }
 
-  public void shoot() {
+  public void startFlywheel() {
     // Placeholder speed
     setFlywheelRPM(flywheelSetpointRPM);
+  }
+
+  public void toggleFlywheel() {
+    if (flywheelOn) {
+      startFlywheel();
+    } else {
+      stopFlywheel();
+    }
+    flywheelOn = !flywheelOn;
   }
 
   public void backupShoot() {
@@ -142,7 +152,7 @@ public class Shooter extends SubsystemBase {
   public void startFeed() {
     if (canShoot() || true) { // fix me
       setTopFeed(feedSetpointRPM);
-      setBottomFeed(feedBSetpointRPM);// verify this again had to unreverse bottome feeder
+      setBottomFeed(feedBSetpointRPM); // verify this again had to unreverse bottome feeder
     }
   }
 
