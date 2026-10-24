@@ -13,11 +13,8 @@ import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-
 
 public class Intake extends SubsystemBase {
   // Lower Intake motor
@@ -41,6 +38,7 @@ public class Intake extends SubsystemBase {
   private GenericEntry turnEncoderPositionEntry;
   private GenericEntry intakeRollersRPMEntry;
   private GenericEntry hopperRollersRPMEntry;
+  private GenericEntry hopperRollersRPMEntryReverse;
   private GenericEntry armDeployedEntry;
 
   private boolean hopperToggle;
@@ -82,17 +80,18 @@ public class Intake extends SubsystemBase {
     }
 
     intakeTab = Shuffleboard.getTab("intake");
-    armDeployedEntry = intakeTab.add("Arm Deployed", false).getEntry();
     fwdLimitSwitchEntry = intakeTab.add("Foward Limit Switch", false).getEntry();
     revLimitSwitchEntry = intakeTab.add("Reverse Limit Switch", false).getEntry();
-    turnEncoderPositionEntry = intakeTab.add("Turn Encoder Position", intakeArmAbsoluteEncoder.getPosition()).getEntry();
+    turnEncoderPositionEntry =
+        intakeTab.add("Turn Encoder Position", intakeArmAbsoluteEncoder.getPosition()).getEntry();
     intakeRollersRPMEntry = intakeTab.add("intakeRollersRPM", 1500).getEntry();
     hopperRollersRPMEntry = intakeTab.add("hopperRollersRPM", 1500).getEntry();
+    hopperRollersRPMEntryReverse = intakeTab.add("hopperRollersReverseRPM", 1000).getEntry();
     armDeployedEntry = intakeTab.add("Arm Deployed", false).getEntry();
 
     hopperToggle = false;
     if (intakeArmAbsoluteEncoder.getPosition() >= 0.4) {
-        armDeployed = false;
+      armDeployed = false;
     } else {
       armDeployed = true;
     }
@@ -110,11 +109,6 @@ public class Intake extends SubsystemBase {
     intakeArmCLC.setSetpoint(0.0, ControlType.kVelocity);
   }
 
-  public boolean canIntakeArm() {
-    Boolean armMotorSpinning = intakeArmAbsoluteEncoder.getVelocity() > 1;
-    return false;
-  }
-
   public Command deployIntakeArm() {
     return runOnce(
         () -> {
@@ -130,13 +124,13 @@ public class Intake extends SubsystemBase {
   }
 
   public Command toggleIntakeArm() {
-    return Commands.runOnce(() -> {
-      if (armDeployed) {
-        deployIntakeArm();
-      } else {
-        retractIntakeArm();
-      }
-    });
+    if (armDeployed) {
+      armDeployed = !armDeployed;
+      return deployIntakeArm();
+    } else {
+      armDeployed = !armDeployed;
+      return retractIntakeArm();
+    }
   }
 
   // Hopper Functions
@@ -146,18 +140,13 @@ public class Intake extends SubsystemBase {
   }
 
   public Command toggleHopper() {
+    // true is on, false is off
     if (hopperToggle) {
-      hopperToggle = false;
-      return runOnce(
-          () -> {
-            stopHopper();
-          });
+      hopperToggle = !hopperToggle;
+      return startHopper();
     } else {
-      hopperToggle = true;
-      return runOnce(
-          () -> {
-            startHopper();
-          });
+      hopperToggle = !hopperToggle;
+      return stopHopper();
     }
   }
 
@@ -178,8 +167,8 @@ public class Intake extends SubsystemBase {
   public Command reverseHopper() {
     return runOnce(
         () -> {
-          double test = intakeRollersRPMEntry.getDouble(1500);
-          setHopper(-test);
+          double test = hopperRollersRPMEntryReverse.getDouble(-1000);
+          setHopper(test);
         });
   }
 

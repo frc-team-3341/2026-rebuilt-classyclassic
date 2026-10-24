@@ -197,7 +197,7 @@ public class RobotContainer {
 
     // Reset gyro to 0° when X button is pressed
     controller
-        .x()
+        .leftStick()
         .onTrue(
             Commands.runOnce(
                     () ->
@@ -206,9 +206,20 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    // controller.x().onTrue(Commands.runOnce(() -> AutoCommands.HubCentric(drive)));
-    // below line to be replaced with flywheel spin function later
-    // controller.a().onTrue(Commands.runOnce(() -> shooter.newPSetpoint(0.0), shooter));
+    controller
+        .a()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  robotIntake.reverseHopper();
+                  shooter.reverseFeed();
+                }))
+        .onFalse(
+            Commands.runOnce(
+                () -> {
+                  robotIntake.stopHopper();
+                  shooter.stopFeed();
+                }));
   }
 
   /**
@@ -236,8 +247,7 @@ public class RobotContainer {
 
     // Start Flywheel
     Trigger flywheelTrigger = controller.rightBumper();
-    flywheelTrigger.onTrue(Commands.runOnce(() -> shooter.shoot()));
-    flywheelTrigger.onFalse(Commands.runOnce(() -> shooter.stopFlywheel()));
+    flywheelTrigger.onTrue(shooter.toggleFlywheel());
 
     // Trigger feedBTrigger = controller.leftTrigger();
     // feedBTrigger.debounce(1);
@@ -253,8 +263,8 @@ public class RobotContainer {
 
     // Hopper Feed trigger
     Trigger hopperTrigger = controller.b();
-    hopperTrigger.onTrue(robotIntake.startHopper()).onFalse(robotIntake.stopHopper());
+    hopperTrigger.onTrue(robotIntake.toggleHopper());
 
-    Trigger armTrigger = controller.y();
+    controller.y().onTrue(robotIntake.toggleIntakeArm());
   }
 }

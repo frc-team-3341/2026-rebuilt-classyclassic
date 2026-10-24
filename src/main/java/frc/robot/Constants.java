@@ -9,7 +9,6 @@ package frc.robot;
 
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.FeedbackSensor;
-import com.revrobotics.spark.SparkLimitSwitch;
 import com.revrobotics.spark.config.LimitSwitchConfig.Behavior;
 import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
@@ -56,7 +55,8 @@ public final class Constants {
     public static final double intakeRollersPower = 0.25;
     public static final double hopperPower = 0.25;
     public static final double turnMaxAcceleration = 300; // In rpm per second
-    public static final double turnCruiseVelocity = 10.0 * 50; // 10 rpm & assumes gear ratio of 50, in rpm
+    public static final double turnCruiseVelocity =
+        10.0 * 50; // 10 rpm & assumes gear ratio of 50, in rpm
 
     public static final boolean intakeRollersReverse = true;
     public static final boolean intakeTurnReverse = false;
