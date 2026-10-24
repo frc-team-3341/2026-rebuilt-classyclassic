@@ -14,6 +14,9 @@ import static frc.robot.subsystems.vision.VisionConstants.*;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -21,11 +24,11 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX;
-import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
@@ -35,6 +38,7 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import java.util.function.Supplier;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -116,14 +120,22 @@ public class RobotContainer {
         driveSimulation =
             new SwerveDriveSimulation(SwerveDriveConfig, new Pose2d(2.0, 2.0, Rotation2d.kZero));
         SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
+        // drive =
+        //     new Drive(
+        //         new GyroIOSim(driveSimulation.getGyroSimulation()),
+        //         new ModuleIOSim(driveSimulation.getModules()[0]),
+        //         new ModuleIOSim(driveSimulation.getModules()[1]),
+        //         new ModuleIOSim(driveSimulation.getModules()[2]),
+        //         new ModuleIOSim(driveSimulation.getModules()[3]),
+        //         driveSimulation::setSimulationWorldPose);
         drive =
             new Drive(
-                new GyroIOSim(driveSimulation.getGyroSimulation()),
-                new ModuleIOSim(driveSimulation.getModules()[0]),
-                new ModuleIOSim(driveSimulation.getModules()[1]),
-                new ModuleIOSim(driveSimulation.getModules()[2]),
-                new ModuleIOSim(driveSimulation.getModules()[3]),
-                driveSimulation::setSimulationWorldPose);
+                new GyroIO() {},
+                new ModuleIOSim(),
+                new ModuleIOSim(),
+                new ModuleIOSim(),
+                new ModuleIOSim());
+        // driveSimulation::setSimulationWorldPose);
 
         createShooter();
         createIntake();
@@ -180,6 +192,25 @@ public class RobotContainer {
     // vision = new Vision(drive::addVisionMeasurement);
   }
 
+  public Supplier<Rotation2d> getHubPos() {
+    double theta;
+    Translation2d hubCenterPose;
+    Pose2d currentPose = drive.getPose();
+    try {
+      hubCenterPose =
+          DriverStation.getAlliance().get() == Alliance.Blue
+              ? FieldConstants.blueHubCenterPose
+              : FieldConstants.redHubCenterPose;
+    } catch (Exception e) {
+      hubCenterPose = FieldConstants.blueHubCenterPose;
+    }
+    double xDisplacement = (hubCenterPose.getX() - currentPose.getX());
+    double yDisplacement = (hubCenterPose.getY() - currentPose.getY());
+
+    theta = Math.toDegrees(Math.atan2(yDisplacement, xDisplacement));
+    return () -> Rotation2d.fromDegrees(theta);
+  }
+
   /**
    * Use this method to define your button->command mappings. Buttons can be created by
    * instantiating a {@link GenericHID} or one of its subclasses ({@link
@@ -191,9 +222,9 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> controller.getLeftY(),
-            () -> controller.getLeftX(),
-            () -> controller.getRightX()));
+            () -> -controller.getLeftY(),
+            () -> -controller.getLeftX(),
+            () -> -controller.getRightX()));
 
     // Reset gyro to 0° when X button is pressed
     controller
@@ -206,6 +237,11 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
+    controller
+        .rightStick()
+        .toggleOnTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive, () -> controller.getLeftY(), () -> controller.getLeftX(), this.getHubPos()));
     controller
         .a()
         .onTrue(

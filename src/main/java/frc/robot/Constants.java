@@ -14,6 +14,7 @@ import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 
 /**
@@ -35,6 +36,11 @@ public final class Constants {
 
     /** Replaying from a log file. */
     REPLAY
+  }
+
+  public static final class FieldConstants {
+    public static final Translation2d blueHubCenterPose = new Translation2d(4.633, 4.035);
+    public static final Translation2d redHubCenterPose = new Translation2d(11.907, 4.035);
   }
 
   public static final class IntakeConstants {
