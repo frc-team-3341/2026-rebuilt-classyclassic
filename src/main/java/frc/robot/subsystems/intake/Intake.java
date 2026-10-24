@@ -84,9 +84,9 @@ public class Intake extends SubsystemBase {
     revLimitSwitchEntry = intakeTab.add("Reverse Limit Switch", false).getEntry();
     turnEncoderPositionEntry =
         intakeTab.add("Turn Encoder Position", intakeArmAbsoluteEncoder.getPosition()).getEntry();
-    intakeRollersRPMEntry = intakeTab.add("intakeRollersRPM", 1500).getEntry();
-    hopperRollersRPMEntry = intakeTab.add("hopperRollersRPM", 1500).getEntry();
-    hopperRollersRPMEntryReverse = intakeTab.add("hopperRollersReverseRPM", 1000).getEntry();
+    intakeRollersRPMEntry = intakeTab.add("intakeRollersRPM", 2100).getEntry();
+    hopperRollersRPMEntry = intakeTab.add("hopperRollersRPM", 2000).getEntry();
+    hopperRollersRPMEntryReverse = intakeTab.add("hopperRollersReverseRPM", -1000).getEntry();
     armDeployedEntry = intakeTab.add("Arm Deployed", false).getEntry();
 
     hopperToggle = false;
@@ -153,7 +153,7 @@ public class Intake extends SubsystemBase {
   public Command startHopper() {
     return runOnce(
         () -> {
-          setHopper(hopperRollersRPMEntry.getDouble(1500));
+          setHopper(hopperRollersRPMEntry.getDouble(2000));
         });
   }
 
@@ -181,7 +181,7 @@ public class Intake extends SubsystemBase {
     return runOnce(
         () -> {
           // startHopper();
-          setIntake(intakeRollersRPMEntry.getDouble(1500));
+          setIntake(intakeRollersRPMEntry.getDouble(2100));
         });
   }
 

@@ -101,11 +101,11 @@ public class Shooter extends SubsystemBase {
         shooterTab.add("Flywheel Encoder RPM", flyMotor1Encoder.getVelocity()).getEntry();
 
     flywheelSendableRPM = shooterTab.add("Flywheel Setpoint RPM", 3000).getEntry();
-    feedSendableRPM = shooterTab.add("Feed Top Setpoint RPM", 500).getEntry();
-    feedBSendableRPM = shooterTab.add("Feed Bottom Setpoint RPM", 500).getEntry();
+    feedSendableRPM = shooterTab.add("Feed Top Setpoint RPM", 4000).getEntry();
+    feedBSendableRPM = shooterTab.add("Feed Bottom Setpoint RPM", 4000).getEntry();
     canShootSendable = shooterTab.add("Shooter CanShoot?", false).getEntry();
-    feedSendableRPMReverse = shooterTab.add("Feed Top Reverse Setpoint RPM", 500).getEntry();
-    feedBSendableRPMReverse = shooterTab.add("Feed Bottom Reverse Setpoint RPM", 500).getEntry();
+    feedSendableRPMReverse = shooterTab.add("Feed Top Reverse Setpoint RPM", -1000).getEntry();
+    feedBSendableRPMReverse = shooterTab.add("Feed Bottom Reverse Setpoint RPM", -1000).getEntry();
   }
 
   public void resetEncoders() {
@@ -206,8 +206,8 @@ public class Shooter extends SubsystemBase {
     targetSendableRPM.setDouble(targetRPM);
     encoderSendableRPM.setDouble(flyMotor1Encoder.getVelocity());
     flywheelSetpointRPM = Math.toIntExact(flywheelSendableRPM.getInteger(3000));
-    feedSetpointRPM = Math.toIntExact(feedSendableRPM.getInteger(500));
-    feedBSetpointRPM = Math.toIntExact(feedBSendableRPM.getInteger(500));
+    feedSetpointRPM = Math.toIntExact(feedSendableRPM.getInteger(4000));
+    feedBSetpointRPM = Math.toIntExact(feedBSendableRPM.getInteger(4000));
     canShootSendable.setBoolean(canShoot());
     feedReverseSetpointRPM = Math.toIntExact(feedSendableRPMReverse.getInteger(-1000));
     feedBReverseSetpointRPM = Math.toIntExact(feedBSendableRPMReverse.getInteger(-1000));
