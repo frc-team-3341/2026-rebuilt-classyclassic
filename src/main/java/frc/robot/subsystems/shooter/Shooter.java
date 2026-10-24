@@ -145,10 +145,17 @@ public class Shooter extends SubsystemBase {
   public Command toggleFlywheel() {
     if (flywheelToggle) {
       flywheelToggle = !flywheelToggle;
-      return startFlywheel();
+      return runOnce(
+          () -> {
+            setFlywheelRPM(flywheelSetpointRPM);
+          });
     } else {
       flywheelToggle = !flywheelToggle;
-      return stopFlywheel();
+      return runOnce(
+          () -> {
+            targetRPM = 0;
+            setFlywheelRPM(targetRPM);
+          });
     }
   }
 
@@ -169,9 +176,12 @@ public class Shooter extends SubsystemBase {
     }
   }
 
-  public void reverseFeed() {
-    setTopFeed(feedReverseSetpointRPM);
-    setBottomFeed(feedBReverseSetpointRPM);
+  public Command reverseFeed() {
+    return runOnce(
+        () -> {
+          setTopFeed(feedReverseSetpointRPM);
+          setBottomFeed(feedBReverseSetpointRPM);
+        });
   }
 
   public void stopFeed() {

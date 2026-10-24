@@ -139,37 +139,28 @@ public class Intake extends SubsystemBase {
     hopperRollersCLC.setSetpoint(rpm, ControlType.kVelocity);
   }
 
-  public Command toggleHopper() {
+  public void toggleHopper() {
     // true is on, false is off
     if (hopperToggle) {
       hopperToggle = !hopperToggle;
-      return startHopper();
+      startHopper();
     } else {
       hopperToggle = !hopperToggle;
-      return stopHopper();
+      stopHopper();
     }
   }
 
-  public Command startHopper() {
-    return runOnce(
-        () -> {
-          setHopper(hopperRollersRPMEntry.getDouble(2000));
-        });
+  public void startHopper() {
+    setHopper(hopperRollersRPMEntry.getDouble(2000));
   }
 
-  public Command stopHopper() {
-    return runOnce(
-        () -> {
-          setHopper(0);
-        });
+  public void stopHopper() {
+    setHopper(0);
   }
 
-  public Command reverseHopper() {
-    return runOnce(
-        () -> {
-          double test = hopperRollersRPMEntryReverse.getDouble(-1000);
-          setHopper(test);
-        });
+  public void reverseHopper() {
+    double test = hopperRollersRPMEntryReverse.getDouble(-1000);
+    setHopper(test);
   }
 
   // Lower Ball Intake Functions
@@ -177,20 +168,12 @@ public class Intake extends SubsystemBase {
     intakeRollersCLC.setSetpoint(rpm, ControlType.kVelocity);
   }
 
-  public Command startIntake() {
-    return runOnce(
-        () -> {
-          // startHopper();
-          setIntake(intakeRollersRPMEntry.getDouble(2100));
-        });
+  public void startIntake() {
+    setIntake(intakeRollersRPMEntry.getDouble(2100));
   }
 
-  public Command stopIntake() {
-    return runOnce(
-        () -> {
-          // stopHopper();
-          setIntake(0);
-        });
+  public void stopIntake() {
+    setIntake(0);
   }
 
   public void periodic() {
