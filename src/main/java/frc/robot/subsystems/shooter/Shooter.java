@@ -142,20 +142,14 @@ public class Shooter extends SubsystemBase {
     setFlywheelRPM(ShooterConstants.BACKUPSHOOTERRPM);
   }
 
-  public Command toggleFlywheel() {
+  public void toggleFlywheel() {
     if (flywheelToggle) {
       flywheelToggle = !flywheelToggle;
-      return runOnce(
-          () -> {
-            setFlywheelRPM(flywheelSetpointRPM);
-          });
+      setFlywheelRPM(flywheelSetpointRPM);
     } else {
       flywheelToggle = !flywheelToggle;
-      return runOnce(
-          () -> {
-            targetRPM = 0;
-            setFlywheelRPM(targetRPM);
-          });
+      targetRPM = 0;
+      setFlywheelRPM(targetRPM);
     }
   }
 

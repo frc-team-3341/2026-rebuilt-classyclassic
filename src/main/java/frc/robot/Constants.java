@@ -81,6 +81,8 @@ public final class Constants {
           .reverseLimitSwitchType(Type.kNormallyClosed)
           .reverseLimitSwitchTriggerBehavior(Behavior.kStopMovingMotor);
 
+      intakeArmConfig.softLimit.forwardSoftLimitEnabled(true).forwardSoftLimit(0.22);
+
       hopperMovementConfig
           .closedLoop
           .feedbackSensor(FeedbackSensor.kPrimaryEncoder)

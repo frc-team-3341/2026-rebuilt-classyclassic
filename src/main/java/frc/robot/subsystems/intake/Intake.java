@@ -73,7 +73,7 @@ public class Intake extends SubsystemBase {
     intakeRollersCLC = intakeRollers.getClosedLoopController();
     hopperRollersCLC = hopperMovement.getClosedLoopController();
     // Arbitrary please change
-    if (intakeArmAbsoluteEncoder.getPosition() > 0.4) {
+    if (intakeArmAbsoluteEncoder.getPosition() > 0.22) {
       armDeployed = false;
     } else {
       armDeployed = true;
@@ -90,7 +90,7 @@ public class Intake extends SubsystemBase {
     armDeployedEntry = intakeTab.add("Arm Deployed", false).getEntry();
 
     hopperToggle = false;
-    if (intakeArmAbsoluteEncoder.getPosition() >= 0.4) {
+    if (intakeArmAbsoluteEncoder.getPosition() >= 0.22) {
       armDeployed = false;
     } else {
       armDeployed = true;
@@ -114,6 +114,10 @@ public class Intake extends SubsystemBase {
         () -> {
           setIntakeArm(200);
         });
+  }
+
+  public boolean getArmDeployed() {
+    return armDeployed;
   }
 
   public Command retractIntakeArm() {
@@ -177,7 +181,7 @@ public class Intake extends SubsystemBase {
   }
 
   public void periodic() {
-    if (intakeArmAbsoluteEncoder.getPosition() > 0.4) {
+    if (intakeArmAbsoluteEncoder.getPosition() > 0.22) {
       armDeployed = false;
     } else {
       armDeployed = true;
