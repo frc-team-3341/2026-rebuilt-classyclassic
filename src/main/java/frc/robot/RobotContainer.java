@@ -220,7 +220,7 @@ public class RobotContainer {
      * that being the case would cause even a zero passthrough setpoint in theta to become something oscillating just off because it is converted into radians
      * before being passed into the PID controller for input to the motors, if that happens we will have to make a toggle there, which means more booleans and checks
      * as opposed to the three lines below. So we test and if not i have code written in this comment below for the alternative
-     * 
+     *
      * The following is for DriveCommands.java in the JoystickDriveAtAngle Function
      * double omega;
       // this might also have a conversion issue but it only goes through the supplier so i hope not

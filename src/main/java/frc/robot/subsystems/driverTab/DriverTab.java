@@ -39,7 +39,6 @@ public class DriverTab extends SubsystemBase {
 
   @Override
   public void periodic() {
-    shooter.setFlywheelRPM(flywheelSetpoint.getDouble(3000));
     flywheelSpinning.setBoolean(shooter.getTargetRPM() > 0);
     canShoot.setBoolean(shooter.canShoot());
     flywheelSetpoint.setDouble(shooter.getTargetRPM());
