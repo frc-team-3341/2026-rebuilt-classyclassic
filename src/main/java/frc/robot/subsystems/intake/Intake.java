@@ -41,7 +41,7 @@ public class Intake extends SubsystemBase {
   private GenericEntry hopperRollersRPMEntryReverse;
   private GenericEntry armDeployedEntry;
 
-  private boolean hopperToggle;
+  private boolean hopperToggle = true;
   private boolean armDeployed;
 
   public Intake() {
