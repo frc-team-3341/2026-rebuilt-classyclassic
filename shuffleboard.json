@@ -39,19 +39,6 @@
           },
           "2,0": {
             "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "ComboBox Chooser",
-              "_source0": "network_table:///SmartDashboard/Auto Choices",
-              "_title": "Auto Choices",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "3,0": {
-            "size": [
               2,
               1
             ],
@@ -61,12 +48,12 @@
               "_title": "Field",
               "_glyph": 148,
               "_showGlyph": false,
-              "Game/Game": "k2025Reefscape",
+              "Game/Game": "k2026Rebuilt",
               "Visuals/Robot Icon Size": 50.0,
               "Visuals/Show Outside Circles": false
             }
           },
-          "5,0": {
+          "4,0": {
             "size": [
               1,
               1
@@ -75,6 +62,19 @@
               "_type": "Alerts",
               "_source0": "network_table:///SmartDashboard/PhotonAlerts",
               "_title": "PhotonAlerts",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "5,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "ComboBox Chooser",
+              "_source0": "network_table:///SmartDashboard/Auto Choices",
+              "_title": "Auto Choices",
               "_glyph": 148,
               "_showGlyph": false
             }
@@ -97,9 +97,9 @@
     }
   ],
   "windowGeometry": {
-    "x": 78.66666412353516,
-    "y": 54.0,
-    "width": 1490.0,
-    "height": 798.0
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1280.0,
+    "height": 752.0
   }
 }
