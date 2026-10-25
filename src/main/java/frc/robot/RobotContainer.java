@@ -70,6 +70,9 @@ public class RobotContainer {
   // Drive Mode driveMode
   private int driveMode;
 
+  // AimDrive variable
+  double theta;
+
   @SuppressWarnings("unused")
   private final Vision vision;
 
@@ -193,7 +196,6 @@ public class RobotContainer {
   }
 
   public Supplier<Rotation2d> getHubPos() {
-    double theta;
     Translation2d hubCenterPose;
     Pose2d currentPose = drive.getPose();
     try {
@@ -208,6 +210,7 @@ public class RobotContainer {
     double yDisplacement = (hubCenterPose.getY() - currentPose.getY());
 
     theta = Math.toDegrees(Math.atan2(yDisplacement, xDisplacement));
+    theta += 180;
     return () -> Rotation2d.fromDegrees(theta);
   }
 
