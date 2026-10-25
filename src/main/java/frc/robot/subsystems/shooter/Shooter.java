@@ -33,7 +33,7 @@ public class Shooter extends SubsystemBase {
 
   private double targetRPM;
 
-  private boolean flywheelToggle = false;
+  private boolean flywheelToggle = true;
 
   private int flywheelSetpointRPM;
   private int feedSetpointRPM;
