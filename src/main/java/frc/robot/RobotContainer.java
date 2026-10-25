@@ -211,6 +211,27 @@ public class RobotContainer {
 
     theta = Math.toDegrees(Math.atan2(yDisplacement, xDisplacement));
     theta += 180;
+    // deadzone for anyspam
+    /* I will note that i have read inthe description of the function Math.todegrees that the radian to degrees conversion is not 100% accurate,
+     * that being the case would cause even a zero passthrough setpoint in theta to become something oscillating just off because it is converted into radians
+     * before being passed into the PID controller for input to the motors, if that happens we will have to make a toggle there, which means more booleans and checks
+     * as opposed to the three lines below. So we test and if not i have code written in this comment below for the alternative
+     * 
+     * The following is for DriveCommands.java in the JoystickDriveAtAngle Function
+     * double omega;
+      // this might also have a conversion issue but it only goes through the supplier so i hope not
+      if (rotationSupplier.get().getDegrees() == 0) {
+        omega = 0;
+      }
+      else {
+        omega =
+        angleController.calculate(
+          drive.getRotation().getRadians(), rotationSupplier.get().getRadians());
+      }
+    */
+    if (theta >= 175 || theta <= 185) {
+      theta = 0;
+    }
     return () -> Rotation2d.fromDegrees(theta);
   }
 
