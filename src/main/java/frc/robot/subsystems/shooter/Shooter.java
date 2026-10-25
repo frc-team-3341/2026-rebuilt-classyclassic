@@ -164,7 +164,7 @@ public class Shooter extends SubsystemBase {
   }
 
   public void startFeed() {
-    if (canShoot() || true) { // fix me
+    if (canShoot() || true) { // TODO: fix me
       setTopFeed(feedSetpointRPM);
       setBottomFeed(feedBSetpointRPM); // verify this again had to unreverse bottome feeder
     }
@@ -202,6 +202,14 @@ public class Shooter extends SubsystemBase {
       return true;
     }
     return false;
+  }
+
+  public double getTargetRPM() {
+    return targetRPM;
+  }
+
+  public double getEncoderRPM() {
+    return flyMotor1Encoder.getVelocity();
   }
 
   @Override

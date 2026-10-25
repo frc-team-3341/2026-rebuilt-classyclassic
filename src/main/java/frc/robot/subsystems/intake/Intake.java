@@ -180,6 +180,10 @@ public class Intake extends SubsystemBase {
     setIntake(0);
   }
 
+  public boolean getHopperOn() {
+    return hopperToggle;
+  }
+
   public void periodic() {
     if (intakeArmAbsoluteEncoder.getPosition() > 0.22) {
       armDeployed = false;

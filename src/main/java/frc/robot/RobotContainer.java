@@ -32,6 +32,7 @@ import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
+import frc.robot.subsystems.driverTab.DriverTab;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.vision.Vision;
@@ -56,6 +57,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private Shooter shooter;
+  private DriverTab driverTab;
   private SwerveDriveSimulation driveSimulation;
 
   // Controller
@@ -91,6 +93,7 @@ public class RobotContainer {
                 new ModuleIOSpark(3));
         createIntake();
         createShooter();
+        createDriverTab(shooter, robotIntake, drive);
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -161,6 +164,7 @@ public class RobotContainer {
                 new ModuleIO() {});
         createIntake();
         createShooter();
+        createDriverTab(shooter, robotIntake, drive);
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -275,6 +279,11 @@ public class RobotContainer {
       SimulatedArena.getInstance().simulationPeriodic();
       drive.setSimulationPose(driveSimulation.getSimulatedDriveTrainPose());
     }
+  }
+
+  // Creates Shuffleboard tab for driving
+  public void createDriverTab(Shooter shooter, Intake intake, Drive drive) {
+    driverTab = new DriverTab(shooter, intake, drive);
   }
 
   public void createShooter() {
