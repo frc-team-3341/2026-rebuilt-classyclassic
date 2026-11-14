@@ -14,6 +14,7 @@ import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 
 /**
@@ -37,6 +38,11 @@ public final class Constants {
     REPLAY
   }
 
+  public static final class FieldConstants {
+    public static final Translation2d blueHubCenterPose = new Translation2d(4.633, 4.035);
+    public static final Translation2d redHubCenterPose = new Translation2d(11.907, 4.035);
+  }
+
   public static final class IntakeConstants {
     public static final int CANIDINTAKEROLLERS = 15;
     public static final int CANIDHOPPER = 14;
@@ -50,8 +56,7 @@ public final class Constants {
     public static final double kIturn = 0.0;
     public static final double kDturn = 0.0;
     public static final double kVturn = 12.0 / 5767;
-    public static final double kCosturn = 1.5;
-    public static final double kCosRationturn = 1.0 / 50;
+    public static final double kGturn = 0.5;
 
     public static final double intakeRollersPower = 0.25;
     public static final double hopperPower = 0.25;
@@ -73,15 +78,7 @@ public final class Constants {
           .outputRange(-1, 1, ClosedLoopSlot.kSlot0)
           .feedForward
           .kV(kVturn, ClosedLoopSlot.kSlot0)
-          .kCos(kCosturn, ClosedLoopSlot.kSlot0)
-          .kCosRatio(kCosRationturn, ClosedLoopSlot.kSlot0);
-
-      intakeArmConfig
-          .closedLoop
-          .maxMotion
-          .allowedProfileError(0.1)
-          .maxAcceleration(turnMaxAcceleration)
-          .cruiseVelocity(turnCruiseVelocity);
+          .kG(kGturn);
 
       intakeArmConfig
           .limitSwitch
@@ -89,6 +86,8 @@ public final class Constants {
           .forwardLimitSwitchTriggerBehavior(Behavior.kStopMovingMotor)
           .reverseLimitSwitchType(Type.kNormallyClosed)
           .reverseLimitSwitchTriggerBehavior(Behavior.kStopMovingMotor);
+
+      intakeArmConfig.softLimit.forwardSoftLimitEnabled(true).forwardSoftLimit(0.22);
 
       hopperMovementConfig
           .closedLoop

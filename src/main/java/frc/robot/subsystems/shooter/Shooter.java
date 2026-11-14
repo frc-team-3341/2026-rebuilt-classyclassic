@@ -10,6 +10,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ShooterConstants;
 
@@ -32,9 +33,13 @@ public class Shooter extends SubsystemBase {
 
   private double targetRPM;
 
+  private boolean flywheelToggle = true;
+
   private int flywheelSetpointRPM;
   private int feedSetpointRPM;
   private int feedBSetpointRPM;
+  private int feedReverseSetpointRPM;
+  private int feedBReverseSetpointRPM;
 
   // Shuffleboard
   ShuffleboardTab shooterTab;
@@ -44,6 +49,8 @@ public class Shooter extends SubsystemBase {
   GenericEntry flywheelSendableRPM;
   GenericEntry feedSendableRPM;
   GenericEntry feedBSendableRPM;
+  GenericEntry feedSendableRPMReverse;
+  GenericEntry feedBSendableRPMReverse;
 
   public Shooter() {
 
@@ -94,9 +101,11 @@ public class Shooter extends SubsystemBase {
         shooterTab.add("Flywheel Encoder RPM", flyMotor1Encoder.getVelocity()).getEntry();
 
     flywheelSendableRPM = shooterTab.add("Flywheel Setpoint RPM", 3000).getEntry();
-    feedSendableRPM = shooterTab.add("Feed Top Setpoint RPM", 500).getEntry();
-    feedBSendableRPM = shooterTab.add("Feed Bottom Setpoint RPM", 500).getEntry();
+    feedSendableRPM = shooterTab.add("Feed Top Setpoint RPM", 4000).getEntry();
+    feedBSendableRPM = shooterTab.add("Feed Bottom Setpoint RPM", 4000).getEntry();
     canShootSendable = shooterTab.add("Shooter CanShoot?", false).getEntry();
+    feedSendableRPMReverse = shooterTab.add("Feed Top Reverse Setpoint RPM", -1000).getEntry();
+    feedBSendableRPMReverse = shooterTab.add("Feed Bottom Reverse Setpoint RPM", -1000).getEntry();
   }
 
   public void resetEncoders() {
@@ -110,23 +119,38 @@ public class Shooter extends SubsystemBase {
 
   public void setFlywheelRPM(double rpm) {
     targetRPM = rpm;
-    System.out.println(flyMotor1CLC);
     flyMotor1CLC.setSetpoint(rpm, ControlType.kVelocity);
   }
 
-  public void stopFlywheel() {
-    targetRPM = 0;
-    setFlywheelRPM(targetRPM);
+  public Command stopFlywheel() {
+    return runOnce(
+        () -> {
+          targetRPM = 0;
+          setFlywheelRPM(targetRPM);
+        });
   }
 
-  public void shoot() {
-    // Placeholder speed
-    setFlywheelRPM(flywheelSetpointRPM);
+  public Command startFlywheel() {
+    return runOnce(
+        () -> {
+          setFlywheelRPM(flywheelSetpointRPM);
+        });
   }
 
   public void backupShoot() {
     // Placeholder speed
     setFlywheelRPM(ShooterConstants.BACKUPSHOOTERRPM);
+  }
+
+  public void toggleFlywheel() {
+    if (flywheelToggle) {
+      flywheelToggle = !flywheelToggle;
+      setFlywheelRPM(flywheelSetpointRPM);
+    } else {
+      flywheelToggle = !flywheelToggle;
+      targetRPM = 0;
+      setFlywheelRPM(targetRPM);
+    }
   }
 
   // Feed Functions
@@ -140,15 +164,18 @@ public class Shooter extends SubsystemBase {
   }
 
   public void startFeed() {
-    if (canShoot() || true) { // fix me
+    if (canShoot() || true) { // TODO: fix me
       setTopFeed(feedSetpointRPM);
       setBottomFeed(feedBSetpointRPM); // verify this again had to unreverse bottome feeder
     }
   }
 
-  public void reverseFeed() {
-    setTopFeed(-feedSetpointRPM);
-    setBottomFeed(-feedBSetpointRPM);
+  public Command reverseFeed() {
+    return runOnce(
+        () -> {
+          setTopFeed(feedReverseSetpointRPM);
+          setBottomFeed(feedBReverseSetpointRPM);
+        });
   }
 
   public void stopFeed() {
@@ -167,12 +194,22 @@ public class Shooter extends SubsystemBase {
   public boolean canShoot() {
     // Checks if flywheel speed is within acceptable range of target speed (200 rpm)
     Boolean flywheelReady = Math.abs(flyMotor1Encoder.getVelocity() - targetRPM) <= 200;
+    // Checks if flywheel is spinning
+    Boolean flywheelSpinning = targetRPM > 10;
 
     // Check if all conditions are true
-    if (flywheelReady) {
+    if (flywheelReady && flywheelSpinning) {
       return true;
     }
-    return true;
+    return false;
+  }
+
+  public double getTargetRPM() {
+    return targetRPM;
+  }
+
+  public double getEncoderRPM() {
+    return flyMotor1Encoder.getVelocity();
   }
 
   @Override
@@ -181,9 +218,11 @@ public class Shooter extends SubsystemBase {
     targetSendableRPM.setDouble(targetRPM);
     encoderSendableRPM.setDouble(flyMotor1Encoder.getVelocity());
     flywheelSetpointRPM = Math.toIntExact(flywheelSendableRPM.getInteger(3000));
-    feedSetpointRPM = Math.toIntExact(feedSendableRPM.getInteger(500));
-    feedBSetpointRPM = Math.toIntExact(feedBSendableRPM.getInteger(500));
+    feedSetpointRPM = Math.toIntExact(feedSendableRPM.getInteger(4000));
+    feedBSetpointRPM = Math.toIntExact(feedBSendableRPM.getInteger(4000));
     canShootSendable.setBoolean(canShoot());
+    feedReverseSetpointRPM = Math.toIntExact(feedSendableRPMReverse.getInteger(-1000));
+    feedBReverseSetpointRPM = Math.toIntExact(feedBSendableRPMReverse.getInteger(-1000));
   }
 
   public void simulationPeriodic() {}

@@ -38,20 +38,16 @@ public class Intake extends SubsystemBase {
   private GenericEntry turnEncoderPositionEntry;
   private GenericEntry intakeRollersRPMEntry;
   private GenericEntry hopperRollersRPMEntry;
+  private GenericEntry hopperRollersRPMEntryReverse;
+  private GenericEntry armDeployedEntry;
 
-  // hopper toggle "debounce"
-  private boolean hopperToggle;
+  private boolean hopperToggle = true;
+  private boolean armDeployed;
 
   public Intake() {
     intakeRollers = new SparkFlex(IntakeConstants.CANIDINTAKEROLLERS, MotorType.kBrushless);
     hopperMovement = new SparkFlex(IntakeConstants.CANIDHOPPER, MotorType.kBrushless);
     intakeArm = new SparkMax(IntakeConstants.CANIDINTAKEARM, MotorType.kBrushless);
-
-    // SoftLimitConfig softLimitConfig = new SoftLimitConfig();
-    // softLimitConfig.forwardSoftLimitEnabled(true); //enables the forward soft limit
-    // softLimitConfig.reverseSoftLimitEnabled(true); //enables the reverse soft limit
-    // softLimitConfig.forwardSoftLimit(0);
-    // softLimitConfig.reverseSoftLimit(topSoftLimit);
 
     revLimitSwitch = intakeArm.getReverseLimitSwitch(); // arm up pos
     fwdLimitSwitch = intakeArm.getForwardLimitSwitch(); // arm down pos
@@ -76,44 +72,69 @@ public class Intake extends SubsystemBase {
 
     intakeRollersCLC = intakeRollers.getClosedLoopController();
     hopperRollersCLC = hopperMovement.getClosedLoopController();
+    // Arbitrary please change
+    if (intakeArmAbsoluteEncoder.getPosition() > 0.22) {
+      armDeployed = false;
+    } else {
+      armDeployed = true;
+    }
 
     intakeTab = Shuffleboard.getTab("intake");
     fwdLimitSwitchEntry = intakeTab.add("Foward Limit Switch", false).getEntry();
     revLimitSwitchEntry = intakeTab.add("Reverse Limit Switch", false).getEntry();
     turnEncoderPositionEntry =
         intakeTab.add("Turn Encoder Position", intakeArmAbsoluteEncoder.getPosition()).getEntry();
-    intakeRollersRPMEntry = intakeTab.add("intakeRollersRPM", 1500).getEntry();
-    hopperRollersRPMEntry = intakeTab.add("hopperRollersRPM", 1500).getEntry();
+    intakeRollersRPMEntry = intakeTab.add("intakeRollersRPM", 2100).getEntry();
+    hopperRollersRPMEntry = intakeTab.add("hopperRollersRPM", 2000).getEntry();
+    hopperRollersRPMEntryReverse = intakeTab.add("hopperRollersReverseRPM", -1000).getEntry();
+    armDeployedEntry = intakeTab.add("Arm Deployed", false).getEntry();
+
+    hopperToggle = false;
+    if (intakeArmAbsoluteEncoder.getPosition() >= 0.22) {
+      armDeployed = false;
+    } else {
+      armDeployed = true;
+    }
   }
 
   // Turn Intake Functions
   // might need to pivot to using velocity setpoints for now
-  public void setIntakeArm(double position) {
+  public void setIntakeArm(double velocity) {
     // retract velocity -600
     // deploy velocity 200
-    intakeArmCLC.setSetpoint(position, ControlType.kPosition);
+    intakeArmCLC.setSetpoint(velocity, ControlType.kVelocity);
   }
 
   public void stopintakeArm() {
     intakeArmCLC.setSetpoint(0.0, ControlType.kVelocity);
   }
 
-  public boolean canIntakeArm() {
-    return false;
-  }
-
   public Command deployIntakeArm() {
     return runOnce(
         () -> {
-          setIntakeArm(0.228);
+          setIntakeArm(200);
         });
+  }
+
+  public boolean getArmDeployed() {
+    return armDeployed;
   }
 
   public Command retractIntakeArm() {
     return runOnce(
         () -> {
-          setIntakeArm(0.56);
+          setIntakeArm(-600);
         });
+  }
+
+  public Command toggleIntakeArm() {
+    if (armDeployed) {
+      armDeployed = !armDeployed;
+      return deployIntakeArm();
+    } else {
+      armDeployed = !armDeployed;
+      return retractIntakeArm();
+    }
   }
 
   // Hopper Functions
@@ -122,42 +143,28 @@ public class Intake extends SubsystemBase {
     hopperRollersCLC.setSetpoint(rpm, ControlType.kVelocity);
   }
 
-  public Command toggleHopper() {
+  public void toggleHopper() {
+    // true is on, false is off
     if (hopperToggle) {
-      hopperToggle = false;
-      return runOnce(
-          () -> {
-            stopHopper();
-          });
+      hopperToggle = !hopperToggle;
+      startHopper();
     } else {
-      hopperToggle = true;
-      return runOnce(
-          () -> {
-            startHopper();
-          });
+      hopperToggle = !hopperToggle;
+      stopHopper();
     }
   }
 
-  public Command startHopper() {
-    return runOnce(
-        () -> {
-          setHopper(hopperRollersRPMEntry.getDouble(1500));
-        });
+  public void startHopper() {
+    setHopper(hopperRollersRPMEntry.getDouble(2000));
   }
 
-  public Command stopHopper() {
-    return runOnce(
-        () -> {
-          setHopper(0);
-        });
+  public void stopHopper() {
+    setHopper(0);
   }
 
-  public Command reverseHopper() {
-    return runOnce(
-        () -> {
-          double test = intakeRollersRPMEntry.getDouble(1500);
-          setHopper(-test);
-        });
+  public void reverseHopper() {
+    double test = hopperRollersRPMEntryReverse.getDouble(-1000);
+    setHopper(test);
   }
 
   // Lower Ball Intake Functions
@@ -165,25 +172,28 @@ public class Intake extends SubsystemBase {
     intakeRollersCLC.setSetpoint(rpm, ControlType.kVelocity);
   }
 
-  public Command startIntake() {
-    return runOnce(
-        () -> {
-          // startHopper();
-          setIntake(intakeRollersRPMEntry.getDouble(1500));
-        });
+  public void startIntake() {
+    setIntake(intakeRollersRPMEntry.getDouble(2100));
   }
 
-  public Command stopIntake() {
-    return runOnce(
-        () -> {
-          // stopHopper();
-          setIntake(0);
-        });
+  public void stopIntake() {
+    setIntake(0);
+  }
+
+  public boolean getHopperOn() {
+    return hopperToggle;
   }
 
   public void periodic() {
+    if (intakeArmAbsoluteEncoder.getPosition() > 0.22) {
+      armDeployed = false;
+    } else {
+      armDeployed = true;
+    }
+
     fwdLimitSwitchEntry.setBoolean(fwdLimitSwitch.isPressed());
     revLimitSwitchEntry.setBoolean(revLimitSwitch.isPressed());
     turnEncoderPositionEntry.setDouble(intakeArmAbsoluteEncoder.getPosition());
+    armDeployedEntry.setBoolean(armDeployed);
   }
 }

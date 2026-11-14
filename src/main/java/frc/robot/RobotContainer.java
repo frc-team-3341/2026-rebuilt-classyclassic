@@ -14,6 +14,9 @@ import static frc.robot.subsystems.vision.VisionConstants.*;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
@@ -22,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -29,12 +33,14 @@ import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
+import frc.robot.subsystems.driverTab.DriverTab;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import java.util.function.Supplier;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -49,6 +55,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private Shooter shooter;
+  private DriverTab driverTab;
   private SwerveDriveSimulation driveSimulation;
 
   // Controller
@@ -62,6 +69,9 @@ public class RobotContainer {
 
   // Drive Mode driveMode
   private int driveMode;
+
+  // AimDrive variable
+  double theta;
 
   @SuppressWarnings("unused")
   private final Vision vision;
@@ -81,6 +91,7 @@ public class RobotContainer {
                 new ModuleIOSpark(3));
         createIntake();
         createShooter();
+        createDriverTab(shooter, robotIntake, drive);
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -120,6 +131,7 @@ public class RobotContainer {
                 new ModuleIO() {});
         createIntake();
         createShooter();
+        createDriverTab(shooter, robotIntake, drive);
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -154,6 +166,46 @@ public class RobotContainer {
     // vision = new Vision(drive::addVisionMeasurement);
   }
 
+  public Supplier<Rotation2d> getHubPos() {
+    Translation2d hubCenterPose;
+    Pose2d currentPose = drive.getPose();
+    try {
+      hubCenterPose =
+          DriverStation.getAlliance().get() == Alliance.Blue
+              ? FieldConstants.blueHubCenterPose
+              : FieldConstants.redHubCenterPose;
+    } catch (Exception e) {
+      hubCenterPose = FieldConstants.blueHubCenterPose;
+    }
+    double xDisplacement = (hubCenterPose.getX() - currentPose.getX());
+    double yDisplacement = (hubCenterPose.getY() - currentPose.getY());
+
+    theta = Math.toDegrees(Math.atan2(yDisplacement, xDisplacement));
+    theta += 180;
+    // deadzone for anyspam
+    /* I will note that i have read inthe description of the function Math.todegrees that the radian to degrees conversion is not 100% accurate,
+     * that being the case would cause even a zero passthrough setpoint in theta to become something oscillating just off because it is converted into radians
+     * before being passed into the PID controller for input to the motors, if that happens we will have to make a toggle there, which means more booleans and checks
+     * as opposed to the three lines below. So we test and if not i have code written in this comment below for the alternative
+     *
+     * The following is for DriveCommands.java in the JoystickDriveAtAngle Function
+     * double omega;
+      // this might also have a conversion issue but it only goes through the supplier so i hope not
+      if (rotationSupplier.get().getDegrees() == 0) {
+        omega = 0;
+      }
+      else {
+        omega =
+        angleController.calculate(
+          drive.getRotation().getRadians(), rotationSupplier.get().getRadians());
+      }
+    */
+    if (theta >= 175 || theta <= 185) {
+      theta = 0;
+    }
+    return () -> Rotation2d.fromDegrees(theta);
+  }
+
   /**
    * Use this method to define your button->command mappings. Buttons can be created by
    * instantiating a {@link GenericHID} or one of its subclasses ({@link
@@ -165,13 +217,13 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> controller.getLeftY(),
-            () -> controller.getLeftX(),
+            () -> -controller.getLeftY(),
+            () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
     // Reset gyro to 0° when X button is pressed
     controller
-        .x()
+        .leftStick()
         .onTrue(
             Commands.runOnce(
                     () ->
@@ -180,12 +232,28 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    // controller.x().onTrue(Commands.runOnce(() -> AutoCommands.HubCentric(drive)));
-    // below line to be replaced with flywheel spin function later
-    // controller.a().onTrue(Commands.runOnce(() -> shooter.newPSetpoint(0.0), shooter));
+    controller
+        .rightStick()
+        .toggleOnTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive, () -> controller.getLeftY(), () -> controller.getLeftX(), this.getHubPos()));
+    controller
+        .a()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  robotIntake.reverseHopper();
+                  shooter.reverseFeed();
+                }))
+        .onFalse(
+            Commands.runOnce(
+                () -> {
+                  robotIntake.stopHopper();
+                  shooter.stopFeed();
+                }));
   }
 
-  /**
+  /*
    * Use this to pass the autonomous command to the main {@link Robot} class.
    *
    * @return the command to run in autonomous
@@ -201,19 +269,21 @@ public class RobotContainer {
     }
   }
 
+  // Creates Shuffleboard tab for driving
+  public void createDriverTab(Shooter shooter, Intake intake, Drive drive) {
+    driverTab = new DriverTab(shooter, intake, drive);
+  }
+
   public void createShooter() {
     shooter = new Shooter();
     // Feed Function
     Trigger feedTrigger = controller.rightTrigger();
-    feedTrigger.debounce(1);
     feedTrigger.onTrue(Commands.runOnce(() -> shooter.startFeed()));
     feedTrigger.onFalse(Commands.runOnce(() -> shooter.stopFeed()));
 
     // Start Flywheel
     Trigger flywheelTrigger = controller.rightBumper();
-    flywheelTrigger.debounce(1);
-    flywheelTrigger.toggleOnTrue(Commands.runOnce(() -> shooter.shoot()));
-    flywheelTrigger.toggleOnFalse(Commands.runOnce(() -> shooter.stopFlywheel()));
+    flywheelTrigger.onTrue(Commands.runOnce(() -> shooter.toggleFlywheel()));
 
     // Trigger feedBTrigger = controller.leftTrigger();
     // feedBTrigger.debounce(1);
@@ -225,28 +295,27 @@ public class RobotContainer {
 
     // Bottom Feed Trigger
     Trigger bottomFeedTrigger = controller.leftTrigger();
-    bottomFeedTrigger.onTrue(robotIntake.startIntake()).onFalse(robotIntake.stopIntake());
-
-    // Hopper Feed trigger
-    Trigger hopperTrigger = controller.b();
-    hopperTrigger.onTrue(robotIntake.startHopper()).onFalse(robotIntake.stopHopper());
-
-    /*
-    Trigger reverseTrigger = controller.a();
-    reverseTrigger
+    bottomFeedTrigger
         .onTrue(
             Commands.runOnce(
                 () -> {
-                  robotIntake.reverseHopper();
-                  shooter.reverseFeed();
+                  robotIntake.startIntake();
                 }))
         .onFalse(
             Commands.runOnce(
                 () -> {
-                  robotIntake.stopHopper();
-                  shooter.stopFeed();
+                  robotIntake.stopIntake();
                 }));
-    */
-    Trigger armTrigger = controller.y();
+
+    // Hopper Feed trigger
+    Trigger hopperTrigger = controller.b();
+    hopperTrigger.onTrue(
+        Commands.runOnce(
+            () -> {
+              robotIntake.toggleHopper();
+            }));
+
+    controller.x().onTrue(robotIntake.deployIntakeArm());
+    controller.y().onTrue(robotIntake.retractIntakeArm());
   }
 }

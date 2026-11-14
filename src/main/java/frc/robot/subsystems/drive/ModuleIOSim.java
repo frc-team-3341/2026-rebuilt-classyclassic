@@ -7,7 +7,6 @@
 
 package frc.robot.subsystems.drive;
 
-import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.drive.DriveConstants.*;
 
 import edu.wpi.first.math.MathUtil;
@@ -31,6 +30,7 @@ public class ModuleIOSim implements ModuleIO {
   private double turnAppliedVolts = 0.0;
 
   public ModuleIOSim() {
+    // Create drive and turn sim models
     driveSim =
         new DCMotorSim(
             LinearSystemId.createDCMotorSystem(driveGearbox, 0.025, driveMotorReduction),
@@ -59,6 +59,7 @@ public class ModuleIOSim implements ModuleIO {
       turnController.reset();
     }
 
+    // Update simulation state
     driveSim.setInputVoltage(MathUtil.clamp(driveAppliedVolts, -12.0, 12.0));
     turnSim.setInputVoltage(MathUtil.clamp(turnAppliedVolts, -12.0, 12.0));
     driveSim.update(0.02);
@@ -78,7 +79,8 @@ public class ModuleIOSim implements ModuleIO {
     inputs.turnAppliedVolts = turnAppliedVolts;
     inputs.turnCurrentAmps = Math.abs(turnSim.getCurrentDrawAmps());
 
-    // Sample the encoders at 50Hz, matching GyroIOSim.
+    // Update odometry inputs (50Hz because high-frequency odometry in sim doesn't
+    // matter)
     inputs.odometryTimestamps = new double[] {Timer.getFPGATimestamp()};
     inputs.odometryDrivePositionsRad = new double[] {inputs.drivePositionRad};
     inputs.odometryTurnPositions = new Rotation2d[] {inputs.turnPosition};
