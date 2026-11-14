@@ -15,6 +15,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -25,7 +26,6 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX;
-import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
@@ -36,10 +36,7 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import org.ironmaple.simulation.SimulatedArena;
-import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
-import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -72,7 +69,7 @@ public class RobotContainer {
   // private final GyroIOSim gyroIO = new GyroIOSim(null);
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    switch (Constants.currentMode) {
+    switch (RobotBase.isReal() ? Constants.Mode.REAL : Constants.Mode.SIM) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
         drive =
@@ -94,37 +91,14 @@ public class RobotContainer {
         break;
 
       case SIM:
-        // Sim robot, instantiate physics sim IO implementations
-        var SwerveDriveConfig =
-            DriveTrainSimulationConfig.Default()
-                .withRobotMass(Kilograms.of(robotMassKg))
-                .withBumperSize(Meters.of(bumperLengthMeters), Meters.of(bumperWidthMeters))
-                .withCustomModuleTranslations(moduleTranslations)
-                .withGyro(COTS.ofNav2X())
-                .withSwerveModule(
-                    new SwerveModuleSimulationConfig(
-                        driveGearbox,
-                        turnGearbox,
-                        driveMotorReduction,
-                        turnMotorReduction,
-                        Volts.of(driveSimKs),
-                        Volts.of(turnSimFrictionVolts),
-                        Meters.of(wheelRadiusMeters),
-                        KilogramSquareMeters.of(turnSimMOI),
-                        wheelCOF));
-
-        driveSimulation =
-            new SwerveDriveSimulation(SwerveDriveConfig, new Pose2d(2.0, 2.0, Rotation2d.kZero));
-        SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
         drive =
             new Drive(
-                new GyroIOSim(driveSimulation.getGyroSimulation()),
-                new ModuleIOSim(driveSimulation.getModules()[0]),
-                new ModuleIOSim(driveSimulation.getModules()[1]),
-                new ModuleIOSim(driveSimulation.getModules()[2]),
-                new ModuleIOSim(driveSimulation.getModules()[3]),
-                driveSimulation::setSimulationWorldPose);
-
+                // do we need GyroIOSim?
+                new GyroIO() {},
+                new ModuleIOSim(),
+                new ModuleIOSim(),
+                new ModuleIOSim(),
+                new ModuleIOSim());
         createShooter();
         createIntake();
         vision =
@@ -193,7 +167,7 @@ public class RobotContainer {
             drive,
             () -> controller.getLeftY(),
             () -> controller.getLeftX(),
-            () -> controller.getRightX()));
+            () -> -controller.getRightX()));
 
     // Reset gyro to 0° when X button is pressed
     controller
