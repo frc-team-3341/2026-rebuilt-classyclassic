@@ -14,6 +14,9 @@ import static frc.robot.subsystems.vision.VisionConstants.*;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -21,20 +24,22 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX;
-import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
+import frc.robot.subsystems.driverTab.DriverTab;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import java.util.function.Supplier;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -52,6 +57,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private Shooter shooter;
+  private DriverTab driverTab;
   private SwerveDriveSimulation driveSimulation;
 
   // Controller
@@ -65,6 +71,9 @@ public class RobotContainer {
 
   // Drive Mode driveMode
   private int driveMode;
+
+  // AimDrive variable
+  double theta;
 
   @SuppressWarnings("unused")
   private final Vision vision;
@@ -84,6 +93,7 @@ public class RobotContainer {
                 new ModuleIOSpark(3));
         createIntake();
         createShooter();
+        createDriverTab(shooter, robotIntake, drive);
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -116,14 +126,22 @@ public class RobotContainer {
         driveSimulation =
             new SwerveDriveSimulation(SwerveDriveConfig, new Pose2d(2.0, 2.0, Rotation2d.kZero));
         SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
+        // drive =
+        //     new Drive(
+        //         new GyroIOSim(driveSimulation.getGyroSimulation()),
+        //         new ModuleIOSim(driveSimulation.getModules()[0]),
+        //         new ModuleIOSim(driveSimulation.getModules()[1]),
+        //         new ModuleIOSim(driveSimulation.getModules()[2]),
+        //         new ModuleIOSim(driveSimulation.getModules()[3]),
+        //         driveSimulation::setSimulationWorldPose);
         drive =
             new Drive(
-                new GyroIOSim(driveSimulation.getGyroSimulation()),
-                new ModuleIOSim(driveSimulation.getModules()[0]),
-                new ModuleIOSim(driveSimulation.getModules()[1]),
-                new ModuleIOSim(driveSimulation.getModules()[2]),
-                new ModuleIOSim(driveSimulation.getModules()[3]),
-                driveSimulation::setSimulationWorldPose);
+                new GyroIO() {},
+                new ModuleIOSim(),
+                new ModuleIOSim(),
+                new ModuleIOSim(),
+                new ModuleIOSim());
+        // driveSimulation::setSimulationWorldPose);
 
         createShooter();
         createIntake();
@@ -146,6 +164,7 @@ public class RobotContainer {
                 new ModuleIO() {});
         createIntake();
         createShooter();
+        createDriverTab(shooter, robotIntake, drive);
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -180,6 +199,46 @@ public class RobotContainer {
     // vision = new Vision(drive::addVisionMeasurement);
   }
 
+  public Supplier<Rotation2d> getHubPos() {
+    Translation2d hubCenterPose;
+    Pose2d currentPose = drive.getPose();
+    try {
+      hubCenterPose =
+          DriverStation.getAlliance().get() == Alliance.Blue
+              ? FieldConstants.blueHubCenterPose
+              : FieldConstants.redHubCenterPose;
+    } catch (Exception e) {
+      hubCenterPose = FieldConstants.blueHubCenterPose;
+    }
+    double xDisplacement = (hubCenterPose.getX() - currentPose.getX());
+    double yDisplacement = (hubCenterPose.getY() - currentPose.getY());
+
+    theta = Math.toDegrees(Math.atan2(yDisplacement, xDisplacement));
+    theta += 180;
+    // deadzone for anyspam
+    /* I will note that i have read inthe description of the function Math.todegrees that the radian to degrees conversion is not 100% accurate,
+     * that being the case would cause even a zero passthrough setpoint in theta to become something oscillating just off because it is converted into radians
+     * before being passed into the PID controller for input to the motors, if that happens we will have to make a toggle there, which means more booleans and checks
+     * as opposed to the three lines below. So we test and if not i have code written in this comment below for the alternative
+     *
+     * The following is for DriveCommands.java in the JoystickDriveAtAngle Function
+     * double omega;
+      // this might also have a conversion issue but it only goes through the supplier so i hope not
+      if (rotationSupplier.get().getDegrees() == 0) {
+        omega = 0;
+      }
+      else {
+        omega =
+        angleController.calculate(
+          drive.getRotation().getRadians(), rotationSupplier.get().getRadians());
+      }
+    */
+    if (theta >= 175 || theta <= 185) {
+      theta = 0;
+    }
+    return () -> Rotation2d.fromDegrees(theta);
+  }
+
   /**
    * Use this method to define your button->command mappings. Buttons can be created by
    * instantiating a {@link GenericHID} or one of its subclasses ({@link
@@ -191,9 +250,9 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> controller.getLeftY(),
-            () -> controller.getLeftX(),
-            () -> controller.getRightX()));
+            () -> -controller.getLeftY(),
+            () -> -controller.getLeftX(),
+            () -> -controller.getRightX()));
 
     // Reset gyro to 0° when X button is pressed
     controller
@@ -206,6 +265,11 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
+    controller
+        .rightStick()
+        .toggleOnTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive, () -> controller.getLeftY(), () -> controller.getLeftX(), this.getHubPos()));
     controller
         .a()
         .onTrue(
@@ -238,6 +302,11 @@ public class RobotContainer {
     }
   }
 
+  // Creates Shuffleboard tab for driving
+  public void createDriverTab(Shooter shooter, Intake intake, Drive drive) {
+    driverTab = new DriverTab(shooter, intake, drive);
+  }
+
   public void createShooter() {
     shooter = new Shooter();
     // Feed Function
@@ -247,8 +316,7 @@ public class RobotContainer {
 
     // Start Flywheel
     Trigger flywheelTrigger = controller.rightBumper();
-    flywheelTrigger.onTrue(shooter.startFlywheel());
-    flywheelTrigger.onFalse(shooter.stopFlywheel());
+    flywheelTrigger.onTrue(Commands.runOnce(() -> shooter.toggleFlywheel()));
 
     // Trigger feedBTrigger = controller.leftTrigger();
     // feedBTrigger.debounce(1);
@@ -260,11 +328,25 @@ public class RobotContainer {
 
     // Bottom Feed Trigger
     Trigger bottomFeedTrigger = controller.leftTrigger();
-    bottomFeedTrigger.onTrue(robotIntake.startIntake()).onFalse(robotIntake.stopIntake());
+    bottomFeedTrigger
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  robotIntake.startIntake();
+                }))
+        .onFalse(
+            Commands.runOnce(
+                () -> {
+                  robotIntake.stopIntake();
+                }));
 
     // Hopper Feed trigger
     Trigger hopperTrigger = controller.b();
-    hopperTrigger.onTrue(robotIntake.startHopper()).onFalse(robotIntake.stopHopper());
+    hopperTrigger.onTrue(
+        Commands.runOnce(
+            () -> {
+              robotIntake.toggleHopper();
+            }));
 
     controller.x().onTrue(robotIntake.deployIntakeArm());
     controller.y().onTrue(robotIntake.retractIntakeArm());

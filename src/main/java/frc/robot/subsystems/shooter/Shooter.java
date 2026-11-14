@@ -33,7 +33,7 @@ public class Shooter extends SubsystemBase {
 
   private double targetRPM;
 
-  private boolean flywheelToggle = false;
+  private boolean flywheelToggle = true;
 
   private int flywheelSetpointRPM;
   private int feedSetpointRPM;
@@ -142,13 +142,14 @@ public class Shooter extends SubsystemBase {
     setFlywheelRPM(ShooterConstants.BACKUPSHOOTERRPM);
   }
 
-  public Command toggleFlywheel() {
+  public void toggleFlywheel() {
     if (flywheelToggle) {
       flywheelToggle = !flywheelToggle;
-      return startFlywheel();
+      setFlywheelRPM(flywheelSetpointRPM);
     } else {
       flywheelToggle = !flywheelToggle;
-      return stopFlywheel();
+      targetRPM = 0;
+      setFlywheelRPM(targetRPM);
     }
   }
 
@@ -163,15 +164,18 @@ public class Shooter extends SubsystemBase {
   }
 
   public void startFeed() {
-    if (canShoot() || true) { // fix me
+    if (canShoot() || true) { // TODO: fix me
       setTopFeed(feedSetpointRPM);
       setBottomFeed(feedBSetpointRPM); // verify this again had to unreverse bottome feeder
     }
   }
 
-  public void reverseFeed() {
-    setTopFeed(feedReverseSetpointRPM);
-    setBottomFeed(feedBReverseSetpointRPM);
+  public Command reverseFeed() {
+    return runOnce(
+        () -> {
+          setTopFeed(feedReverseSetpointRPM);
+          setBottomFeed(feedBReverseSetpointRPM);
+        });
   }
 
   public void stopFeed() {
@@ -198,6 +202,14 @@ public class Shooter extends SubsystemBase {
       return true;
     }
     return false;
+  }
+
+  public double getTargetRPM() {
+    return targetRPM;
+  }
+
+  public double getEncoderRPM() {
+    return flyMotor1Encoder.getVelocity();
   }
 
   @Override
