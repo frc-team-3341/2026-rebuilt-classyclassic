@@ -5,6 +5,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.shooter.Shooter;
 // import frc.robot.Constants.FieldConstants;
 
 public class AutoCommands {
@@ -19,6 +21,18 @@ public class AutoCommands {
     // Shuffleboard.getTab("Thing").add("NewTranslation", NewRotation);
     System.out.println(NewRotation);
     return Commands.run(() -> {});
+  }
+
+  public static void startShoot(Intake intake, Shooter shooter) {
+    shooter.startFlywheel();
+    shooter.startFeed();
+    intake.startHopper();
+  }
+
+  public static void stopShoot(Intake intake, Shooter shooter) {
+    shooter.stopFlywheel();
+    shooter.stopFeed();
+    intake.stopHopper();
   }
 
   /*

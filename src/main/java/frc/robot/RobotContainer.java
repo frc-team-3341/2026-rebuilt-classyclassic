@@ -12,6 +12,7 @@ import static frc.robot.subsystems.drive.DriveConstants.*;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -26,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.FieldConstants;
+import frc.robot.commands.AutoCommands;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -140,6 +142,11 @@ public class RobotContainer {
                 new VisionIO() {});
         break;
     }
+
+    NamedCommands.registerCommand(
+        "startShoot", Commands.runOnce(() -> AutoCommands.startShoot(robotIntake, shooter)));
+    NamedCommands.registerCommand(
+        "stopShoot", Commands.runOnce(() -> AutoCommands.stopShoot(robotIntake, shooter)));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
